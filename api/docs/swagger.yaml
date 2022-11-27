@@ -38,6 +38,15 @@ definitions:
       user_id:
         type: integer
     type: object
+  models.CreateLikeRequest:
+    properties:
+      postID:
+        type: integer
+      status:
+        type: boolean
+      userID:
+        type: integer
+    type: object
   models.CreatePostRequest:
     properties:
       category_id:
@@ -95,6 +104,15 @@ definitions:
       count:
         type: integer
     type: object
+  models.GetLikesResult:
+    properties:
+      count:
+        type: integer
+      likes:
+        items:
+          $ref: '#/definitions/models.Like'
+        type: array
+    type: object
   models.GetPostsResult:
     properties:
       count:
@@ -112,6 +130,17 @@ definitions:
         items:
           $ref: '#/definitions/models.User'
         type: array
+    type: object
+  models.Like:
+    properties:
+      id:
+        type: integer
+      postID:
+        type: integer
+      status:
+        type: boolean
+      userID:
+        type: integer
     type: object
   models.OKResponse:
     properties:
@@ -441,6 +470,140 @@ paths:
       summary: Update a comment
       tags:
       - comment
+  /likes:
+    get:
+      consumes:
+      - application/json
+      description: Get likes
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Page
+        in: query
+        name: page
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetLikesResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get likes
+      tags:
+      - like
+    post:
+      consumes:
+      - application/json
+      description: Create a like
+      parameters:
+      - description: Like
+        in: body
+        name: like
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateLikeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Like'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a like
+      tags:
+      - like
+  /likes/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a like
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OKResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete a like
+      tags:
+      - like
+    get:
+      consumes:
+      - application/json
+      description: Get a like by id
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Like'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get a like by id
+      tags:
+      - like
+    put:
+      consumes:
+      - application/json
+      description: Update a like
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Like
+        in: body
+        name: like
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateLikeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OKResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update a like
+      tags:
+      - like
   /posts:
     get:
       consumes:

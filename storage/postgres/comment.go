@@ -99,7 +99,7 @@ func (cmr *commentRepo) GetAll(params *repo.GetCommentsParams) (*repo.GetComment
 		return nil, err
 	}
 
-	queryCount := `SELECT count(1) FROM comments` + limit
+	queryCount := `SELECT count(1) FROM comments` //TODO
 
 	err = cmr.db.Get(&result.Count, queryCount)
 
