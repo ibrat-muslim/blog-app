@@ -11,3 +11,8 @@ type Category struct {
 type CreateCategoryRequest struct {
 	Title string `json:"title"`
 }
+
+type GetCategoriesResult struct {
+	Categories []*Category `json:"categories"`
+	Count      int32       `json:"count"`
+}

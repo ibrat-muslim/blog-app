@@ -16,7 +16,21 @@ type User struct {
 	CreatedAt       time.Time `db:"created_at"`
 }
 
+type GetUsersParams struct {
+	Page   int32
+	Limit  int32
+	Search string
+}
+
+type GetUsersResult struct {
+	Users []*User
+	Count int32
+}
+
 type UserStorageI interface {
 	Create(user *User) (*User, error)
 	Get(id int64) (*User, error)
+	GetAll(params *GetUsersParams) (*GetUsersResult, error)
+	Update(user *User) (error)
+	Delete(id int64) (error)
 }

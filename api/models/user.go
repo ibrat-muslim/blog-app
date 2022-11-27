@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type User struct {
 	ID              int64     `json:"id"`
@@ -25,4 +27,9 @@ type CreateUserRequest struct {
 	Username        string  `json:"username"`
 	ProfileImageUrl *string `json:"profile_image_url"`
 	Type            string  `json:"type"`
+}
+
+type GetUsersResult struct {
+	Users []*User `json:"users"`
+	Count int32   `json:"count"`
 }
