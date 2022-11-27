@@ -39,4 +39,11 @@ CREATE TABLE IF NOT EXISTS comments(
     updated_at TIMESTAMP WITH TIME ZONE
 );
 
+CREATE TABLE likes(
+    id SERIAL PRIMARY KEY,
+    post_id INTEGER NOT NULL REFERENCES posts(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    status BOOLEAN NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS posts_title_idx ON posts(title);
