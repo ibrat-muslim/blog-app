@@ -15,7 +15,7 @@ func createPost(t *testing.T) *repo.Post {
 		Title: faker.Sentence(),
 		Description: faker.Sentence(),
 		ImageUrl: &url,
-		UserID: 9,
+		UserID: 1,
 		CategoryID: 1,
 	})
 
@@ -69,7 +69,7 @@ func TestUpdatePost(t *testing.T) {
 	p.Title = faker.Sentence()
 	p.Description = faker.Sentence()
 	p.ImageUrl = &url
-	p.UserID = 5
+	p.UserID = 2
 	p.CategoryID = 2
 	
 	err := strg.Post().Update(p)
