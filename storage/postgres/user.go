@@ -1,6 +1,9 @@
 package postgres
 
 import (
+	"database/sql"
+	"fmt"
+
 	"github.com/ibrat-muslim/blog-app/storage/repo"
 	"github.com/jmoiron/sqlx"
 )
@@ -83,4 +86,136 @@ func (ur *userRepo) Get(id int64) (*repo.User, error) {
 	}
 
 	return &result, nil
+}
+
+func (ur *userRepo) GetAll(params *repo.GetUsersParams) (*repo.GetUsersResult, error) {
+	result := repo.GetUsersResult{
+		Users: make([]*repo.User, 0),
+		Count: 0,
+	}
+
+	offset := (params.Page - 1) * params.Limit
+
+	limit := fmt.Sprintf(" LIMIT %d OFFSET %d ", params.Limit, offset)
+
+	filter := ""
+
+	if params.Search != "" {
+		str := "%" + params.Search + "%"
+		filter += fmt.Sprintf(`
+				WHERE first_name ILIKE '%s' OR last_name ILIKE '%s' OR phone_number ILIKE '%s' 
+				OR email ILIKE '%s' OR username ILIKE '%s'`,
+			str, str, str, str, str,
+		)
+	}
+
+	query := `
+		SELECT
+			id,
+			first_name,
+			last_name,
+			phone_number,
+			email,
+			gender,
+			password,
+			username,
+			profile_image_url,
+			type,
+			created_at
+		FROM users
+		` + filter + `
+		ORDER BY created_at DESC
+		` + limit
+
+	err := ur.db.Select(&result.Users, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	queryCount := `SELECT count(1) FROM users ` + filter
+
+	err = ur.db.Get(&result.Count, queryCount)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (ur *userRepo) Update(user *repo.User) error {
+	query := `
+		UPDATE users SET
+			first_name = $1,
+			last_name = $2,
+			phone_number = $3,
+			email = $4,
+			gender = $5,
+			password = $6,
+			username = $7,
+			profile_image_url = $8,
+			type = $9
+		WHERE id = $10
+	`
+
+	result, err := ur.db.Exec(
+		query,
+		user.FirstName,
+		user.LastName,
+		user.PhoneNumber,
+		user.Email,
+		user.Gender,
+		user.Password,
+		user.Username,
+		user.ProfileImageUrl,
+		user.Type,
+		user.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	rowsCount, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if rowsCount == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (ur *userRepo) Delete(id int64) error {
+	query := `DELETE FROM posts WHERE user_id = $1`
+
+	_, err := ur.db.Exec(query, id)
+
+	if err != nil {
+		return err
+	}
+
+	query = `DELETE FROM users WHERE id = $1`
+
+	resutl, err := ur.db.Exec(query, id)
+
+	if err != nil {
+		return err
+	}
+
+	rowsCount, err := resutl.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if rowsCount == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }

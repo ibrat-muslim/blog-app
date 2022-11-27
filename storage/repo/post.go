@@ -14,7 +14,21 @@ type Post struct {
 	ViewsCount  int32      `db:"views_count"`
 }
 
+type GetPostsParams struct {
+	Page  int32
+	Limit int32
+	Title string
+}
+
+type GetPostsResult struct {
+	Posts []*Post
+	Count int32
+}
+
 type PostStorageI interface {
 	Create(post *Post) (*Post, error)
 	Get(id int64) (*Post, error)
+	GetAll(params *GetPostsParams) (*GetPostsResult, error)
+	Update(post *Post) error
+	Delete(id int64) error
 }
