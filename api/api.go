@@ -50,6 +50,12 @@ func New(opt *RouterOptions) *gin.Engine {
 	apiV1.PUT("/posts/:id", handlerV1.UpdatePost)
 	apiV1.DELETE("posts/:id", handlerV1.DeletePost)
 
+	apiV1.GET("/comments/:id", handlerV1.GetComment)
+	apiV1.GET("/comments", handlerV1.GetComments)
+	apiV1.POST("/comments", handlerV1.CreateComment)
+	apiV1.PUT("/comments/:id", handlerV1.UpdateComment)
+	apiV1.DELETE("comments/:id", handlerV1.DeleteComment)
+
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router

@@ -31,6 +31,6 @@ type UserStorageI interface {
 	Create(user *User) (*User, error)
 	Get(id int64) (*User, error)
 	GetAll(params *GetUsersParams) (*GetUsersResult, error)
-	Update(user *User) (error)
-	Delete(id int64) (error)
+	Update(user *User) error
+	Delete(id int64) error
 }
