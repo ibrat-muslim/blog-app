@@ -7,20 +7,13 @@ type Like struct {
 	Status bool  `db:"status"`
 }
 
-type GetLikesParams struct {
-	Limit int32
-	Page  int32
-}
-
-type GetLikesResult struct {
-	Likes []*Like
-	Count int32
+type LikesDislikesCountsResult struct {
+	LikesCount    int64
+	DislikesCount int64
 }
 
 type LikeStorageI interface {
 	Create(like *Like) (*Like, error)
-	Get(id int64) (*Like, error)
-	GetAll(params *GetLikesParams) (*GetLikesResult, error)
-	Update(like *Like) error
-	Delete(id int64) error
+	Get(userID, postID int64) (*Like, error)
+	GetLikesDislikesCount(postID int64) (*LikesDislikesCountsResult, error)
 }

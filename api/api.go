@@ -56,11 +56,8 @@ func New(opt *RouterOptions) *gin.Engine {
 	apiV1.PUT("/comments/:id", handlerV1.UpdateComment)
 	apiV1.DELETE("comments/:id", handlerV1.DeleteComment)
 
-	apiV1.GET("/likes/:id", handlerV1.GetLike)
-	apiV1.GET("/likes", handlerV1.GetLikes)
+	apiV1.GET("/likes/user-post", handlerV1.GetLike)
 	apiV1.POST("/likes", handlerV1.CreateLike)
-	apiV1.PUT("/likes/:id", handlerV1.UpdateLike)
-	apiV1.DELETE("likes/:id", handlerV1.DeleteLike)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
