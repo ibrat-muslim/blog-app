@@ -1,9 +1,6 @@
 package postgres
 
 import (
-	"database/sql"
-	"fmt"
-
 	"github.com/ibrat-muslim/blog-app/storage/repo"
 	"github.com/jmoiron/sqlx"
 )
@@ -46,7 +43,7 @@ func (l *likeRepo) Create(like *repo.Like) (*repo.Like, error) {
 	return like, nil
 }
 
-func (l *likeRepo) Get(id int64) (*repo.Like, error) {
+func (l *likeRepo) Get(userID, postID int64) (*repo.Like, error) {
 	query := `
 		SELECT
 			id,
@@ -54,12 +51,12 @@ func (l *likeRepo) Get(id int64) (*repo.Like, error) {
 			user_id,
 			status
 		FROM likes
-		WHERE id = $1
+		WHERE user_id = $1 AND post_id = $2
 	`
 
 	var result repo.Like
 
-	err := l.db.Get(&result, query, id)
+	err := l.db.Get(&result, query, userID, postID)
 
 	if err != nil {
 		return nil, err
@@ -68,95 +65,22 @@ func (l *likeRepo) Get(id int64) (*repo.Like, error) {
 	return &result, nil
 }
 
-func (l *likeRepo) GetAll(params *repo.GetLikesParams) (*repo.GetLikesResult, error) {
-	result := repo.GetLikesResult{
-		Likes: make([]*repo.Like, 0),
-		Count: 0,
-	}
-
-	offset := (params.Page - 1) * params.Limit
-
-	limit := fmt.Sprintf(" LIMIT %d OFFSET %d ", params.Limit, offset)
+func (l *likeRepo) GetLikesDislikesCount(postID int64) (*repo.LikesDislikesCountsResult, error) {
+	var result repo.LikesDislikesCountsResult
 
 	query := `
 		SELECT
-			id,
-			post_id,
-			user_id,
-			status
+			COUNT(1) FILTER (WHERE status=true) as likes_count,
+			COUNT(1) FILTER (WHERE status=false) as dislikes_count 
 		FROM likes
-		ORDER BY id DESC
-		` + limit
-	
-	err := l.db.Select(&result.Likes, query)
+		WHERE post_id = $1
+		`
 
-	if err != nil {
-		return nil, err
-	}
-
-	queryCount := `SELECT count(1) FROM likes` //TODO
-
-	err = l.db.Get(&result.Count, queryCount)
+	err := l.db.Get(&result, query, postID)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &result, nil
-}
-
-func (l *likeRepo) Update(like *repo.Like) error {
-	query := `
-		UPDATE likes SET
-			post_id = $1,
-			user_id = $2,
-			status = $3
-		WHERE id  = $4
-	`
-
-	result, err := l.db.Exec(
-		query,
-		like.PostID,
-		like.UserID,
-		like.Status,
-		like.ID,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	rowsCount, err := result.RowsAffected()
-
-	if err != nil {
-		return err
-	}
-
-	if rowsCount == 0 {
-		return sql.ErrNoRows
-	}	
-
-	return nil
-}
-
-func (l *likeRepo) Delete(id int64) error {
-	query := `DELETE FROM likes WHERE id = $1`
-
-	result, err := l.db.Exec(query, id)
-
-	if err != nil {
-		return err
-	}
-
-	rowsCount, err := result.RowsAffected()
-
-	if err != nil {
-		return err
-	}
-
-	if rowsCount == 0 {
-		return sql.ErrNoRows
-	}
-
-	return nil
 }

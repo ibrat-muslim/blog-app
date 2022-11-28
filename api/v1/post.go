@@ -83,6 +83,14 @@ func (h *handlerV1) GetPost(ctx *gin.Context) {
 		return
 	}
 
+	likeInfo, err := h.storage.Like().GetLikesDislikesCount(resp.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Error: err.Error(),
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, models.Post{
 		ID:          resp.ID,
 		Title:       resp.Title,
@@ -93,6 +101,10 @@ func (h *handlerV1) GetPost(ctx *gin.Context) {
 		CreatedAt:   resp.CreatedAt,
 		UpdatedAt:   resp.UpdatedAt,
 		ViewsCount:  resp.ViewsCount,
+		LikeInfo: &models.PostLikeInfo{
+			LikesCount: likeInfo.LikesCount,
+			DislikesCount: likeInfo.DislikesCount,
+		},
 	})
 }
 
