@@ -25,9 +25,7 @@ func (h *handlerV1) CreatePost(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
@@ -39,21 +37,13 @@ func (h *handlerV1) CreatePost(ctx *gin.Context) {
 		CategoryID:  req.CategoryID,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, models.Post{
-		ID:          resp.ID,
-		Title:       resp.Title,
-		Description: resp.Description,
-		ImageUrl:    resp.ImageUrl,
-		UserID:      resp.UserID,
-		CategoryID:  resp.CategoryID,
-		CreatedAt:   resp.CreatedAt,
-	})
+	post := parsePostToModel(resp)
+
+	ctx.JSON(http.StatusCreated, post)
 }
 
 // @Router /posts/{id} [get]
@@ -69,71 +59,30 @@ func (h *handlerV1) GetPost(ctx *gin.Context) {
 
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	resp, err := h.storage.Post().Get(id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	likeInfo, err := h.storage.Like().GetLikesDislikesCount(resp.ID)
+	post := parsePostToModel(resp)
+
+	likeInfo, err := h.storage.Like().GetLikesDislikesCount(post.ID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, models.Post{
-		ID:          resp.ID,
-		Title:       resp.Title,
-		Description: resp.Description,
-		ImageUrl:    resp.ImageUrl,
-		UserID:      resp.UserID,
-		CategoryID:  resp.CategoryID,
-		CreatedAt:   resp.CreatedAt,
-		UpdatedAt:   resp.UpdatedAt,
-		ViewsCount:  resp.ViewsCount,
-		LikeInfo: &models.PostLikeInfo{
-			LikesCount: likeInfo.LikesCount,
-			DislikesCount: likeInfo.DislikesCount,
-		},
-	})
-}
-
-func validateGetPostsParams(ctx *gin.Context) (*repo.GetPostsParams, error) {
-	var (
-		limit int64 = 10
-		page  int64 = 1
-		err   error
-	)
-
-	if ctx.Query("limit") != "" {
-		limit, err = strconv.ParseInt(ctx.Query("limit"), 10, 64)
-		if err != nil {
-			return nil, err
-		}
+	post.LikeInfo = &models.PostLikeInfo{
+		LikesCount:    likeInfo.LikesCount,
+		DislikesCount: likeInfo.DislikesCount,
 	}
 
-	if ctx.Query("page") != "" {
-		page, err = strconv.ParseInt(ctx.Query("page"), 10, 64)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &repo.GetPostsParams{
-		Limit:  int32(limit),
-		Page:   int32(page),
-		Title: ctx.Query("title"),
-	}, nil
+	ctx.JSON(http.StatusOK, post)
 }
 
 // @Router /posts [get]
@@ -142,29 +91,41 @@ func validateGetPostsParams(ctx *gin.Context) (*repo.GetPostsParams, error) {
 // @Tags post
 // @Accept json
 // @Produce json
-// @Param limit query int true "Limit"
-// @Param page query int true "Page"
-// @Param title query string false "Title"
+// @Param filter query models.GetAllParamsRequest false "Filter"
 // @Success 200 {object} models.GetPostsResult
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) GetPosts(ctx *gin.Context) {
-	queryParams, err := validateGetPostsParams(ctx)
+	request, err := validateGetAllParamsRequest(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	resp, err := h.storage.Post().GetAll(queryParams)
+	result, err := h.storage.Post().GetAll(&repo.GetPostsParams{
+		Limit:  request.Limit,
+		Page:   request.Page,
+		Search: request.Search,
+	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, resp)
+	ctx.JSON(http.StatusOK, getPostsResponse(result))
+}
+
+func getPostsResponse(data *repo.GetPostsResult) *models.GetPostsResponse {
+	response := models.GetPostsResponse{
+		Posts: make([]*models.Post, 0),
+		Count: data.Count,
+	}
+
+	for _, post := range data.Posts {
+		p := parsePostToModel(post)
+		response.Posts = append(response.Posts, &p)
+	}
+
+	return &response
 }
 
 // @Router /posts/{id} [put]
@@ -182,36 +143,30 @@ func (h *handlerV1) UpdatePost(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	updatedAt := time.Now()
 
 	err = h.storage.Post().Update(&repo.Post{
-		ID: id,
-		Title: req.Title,
+		ID:          id,
+		Title:       req.Title,
 		Description: req.Description,
-		ImageUrl: req.ImageUrl,
-		UserID: req.UserID,
-		CategoryID: req.CategoryID,
-		UpdatedAt: &updatedAt,
+		ImageUrl:    req.ImageUrl,
+		UserID:      req.UserID,
+		CategoryID:  req.CategoryID,
+		UpdatedAt:   &updatedAt,
 	})
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
@@ -232,21 +187,30 @@ func (h *handlerV1) UpdatePost(ctx *gin.Context) {
 func (h *handlerV1) DeletePost(ctx *gin.Context) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	err = h.storage.Post().Delete(id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, models.OKResponse{
 		Success: "successfully deleted",
 	})
+}
+
+func parsePostToModel(post *repo.Post) models.Post {
+	return models.Post{
+		ID:          post.ID,
+		Title:       post.Title,
+		Description: post.Description,
+		ImageUrl:    post.ImageUrl,
+		UserID:      post.UserID,
+		CategoryID:  post.CategoryID,
+		CreatedAt:   post.CreatedAt,
+		ViewsCount:  post.ViewsCount,
+	}
 }

@@ -28,7 +28,7 @@ type CreatePostRequest struct {
 	CategoryID  int64   `json:"category_id"`
 }
 
-type GetPostsResult struct {
+type GetPostsResponse struct {
 	Posts []*Post `json:"posts"`
 	Count int32   `json:"count"`
 }

@@ -45,7 +45,7 @@ func TestGetAllCategories(t *testing.T) {
 	categories, err := strg.Category().GetAll(&repo.GetCategoriesParams{
 		Limit: 10,
 		Page:  1,
-		Title: c.Title,
+		Search: c.Title,
 	})
 
 	require.NoError(t, err)

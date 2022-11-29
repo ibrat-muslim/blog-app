@@ -17,7 +17,12 @@ type CreateCommentRequest struct {
 	Description string `json:"description"`
 }
 
-type GetCommentsResult struct {
+type GetCommentsParams struct {
+	Limit int32 `json:"limit" binding:"required" default:"10"`
+	Page  int32 `json:"page" binding:"required" default:"1"`
+}
+
+type GetCommentsResponse struct {
 	Comments []*Comment `json:"comments"`
 	Count    int32      `json:"count"`
 }

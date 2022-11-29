@@ -25,9 +25,7 @@ func (h *handlerV1) CreateComment(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
@@ -37,9 +35,7 @@ func (h *handlerV1) CreateComment(ctx *gin.Context) {
 		Description: req.Description,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
@@ -66,17 +62,13 @@ func (h *handlerV1) GetComment(ctx *gin.Context) {
 
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	resp, err := h.storage.Comment().Get(id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
@@ -90,7 +82,7 @@ func (h *handlerV1) GetComment(ctx *gin.Context) {
 	})
 }
 
-func validateGetCommentsParams(ctx *gin.Context) (*repo.GetCommentsParams, error) {
+func validateGetCommentsParams(ctx *gin.Context) (*models.GetCommentsParams, error) {
 	var (
 		limit int64 = 10
 		page  int64 = 1
@@ -111,7 +103,7 @@ func validateGetCommentsParams(ctx *gin.Context) (*repo.GetCommentsParams, error
 		}
 	}
 
-	return &repo.GetCommentsParams{
+	return &models.GetCommentsParams{
 		Limit: int32(limit),
 		Page:  int32(page),
 	}, nil
@@ -123,28 +115,40 @@ func validateGetCommentsParams(ctx *gin.Context) (*repo.GetCommentsParams, error
 // @Tags comment
 // @Accept json
 // @Produce json
-// @Param limit query int true "Limit"
-// @Param page query int true "Page"
-// @Success 200 {object} models.GetCommentsResult
+// @Param filter query models.GetCommentsParams false "Filter"
+// @Success 200 {object} models.GetCommentsResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) GetComments(ctx *gin.Context) {
-	queryParams, err := validateGetCommentsParams(ctx)
+	request, err := validateGetCommentsParams(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	resp, err := h.storage.Comment().GetAll(queryParams)
+	result, err := h.storage.Comment().GetAll(&repo.GetCommentsParams{
+		Limit: request.Limit,
+		Page: request.Page,
+	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, resp)
+	ctx.JSON(http.StatusOK, getCommentsResponse(result))
+}
+
+func getCommentsResponse(data *repo.GetCommentsResult) *models.GetCommentsResponse {
+	response := models.GetCommentsResponse{
+		Comments: make([]*models.Comment, 0),
+		Count: data.Count,
+	}
+
+	for _, comment := range data.Comments {
+		c := parseCommentToModel(comment)
+		response.Comments = append(response.Comments, &c)
+	}
+
+	return &response
 }
 
 // @Router /comments/{id} [put]
@@ -162,17 +166,13 @@ func (h *handlerV1) UpdateComment(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
@@ -187,9 +187,7 @@ func (h *handlerV1) UpdateComment(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
@@ -210,21 +208,28 @@ func (h *handlerV1) UpdateComment(ctx *gin.Context) {
 func (h *handlerV1) DeleteComment(ctx *gin.Context) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	err = h.storage.Comment().Delete(id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, models.OKResponse{
 		Success: "successfully deleted",
 	})
+}
+
+func parseCommentToModel(comment *repo.Comment) models.Comment {
+	return models.Comment{
+		ID:          comment.ID,
+		PostID:      comment.PostID,
+		UserID:      comment.UserID,
+		Description: comment.Description,
+		CreatedAt:   comment.CreatedAt,
+		UpdatedAt:   comment.UpdatedAt,
+	}
 }

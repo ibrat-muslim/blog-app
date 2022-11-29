@@ -24,19 +24,13 @@ func (h *handlerV1) CreateCategory(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	resp, err := h.storage.Category().Create(&repo.Category{
-		Title: req.Title,
-	})
+	resp, err := h.storage.Category().Create(&repo.Category{ Title: req.Title, })
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
@@ -60,17 +54,13 @@ func (h *handlerV1) GetCategory(ctx *gin.Context) {
 
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	resp, err := h.storage.Category().Get(id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
@@ -81,63 +71,50 @@ func (h *handlerV1) GetCategory(ctx *gin.Context) {
 	})
 }
 
-func validateGetCategoriesParams(ctx *gin.Context) (*repo.GetCategoriesParams, error) {
-	var (
-		limit int64 = 10
-		page  int64 = 1
-		err   error
-	)
-
-	if ctx.Query("limit") != "" {
-		limit, err = strconv.ParseInt(ctx.Query("limit"), 10, 64)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if ctx.Query("page") != "" {
-		page, err = strconv.ParseInt(ctx.Query("page"), 10, 64)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &repo.GetCategoriesParams{
-		Limit:  int32(limit),
-		Page:   int32(page),
-		Title: ctx.Query("title"),
-	}, nil
-}
-
 // @Router /categories [get]
 // @Summary Get categories
 // @Description Get categories
 // @Tags category
 // @Accept json
 // @Produce json
-// @Param limit query int true "Limit"
-// @Param page query int true "Page"
-// @Param title query string false "Title"
-// @Success 200 {object} models.GetCategoriesResult
+// @Param filter query models.GetAllParamsRequest false "Filter"
+// @Success 200 {object} models.GetCategoriesResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) GetCategories(ctx *gin.Context) {
-	queryParams, err := validateGetCategoriesParams(ctx)
+	request, err := validateGetAllParamsRequest(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	resp, err := h.storage.Category().GetAll(queryParams)
+	result, err := h.storage.Category().GetAll(&repo.GetCategoriesParams{
+		Limit: request.Limit,
+		Page: request.Page,
+		Search: request.Search,
+	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, resp)
+	ctx.JSON(http.StatusOK, getCategoriesResponse(result))
+}
+
+func getCategoriesResponse(data *repo.GetCategoriesResult) *models.GetCategoriesResponse {
+	response := models.GetCategoriesResponse{
+		Categories: make([]*models.Category, 0),
+		Count: data.Count,
+	}
+
+	for _, c := range data.Categories {
+		response.Categories = append(response.Categories, &models.Category{
+			ID: c.ID,
+			Title: c.Title,
+			CreatedAt: c.CreatedAt,
+		})
+	}
+
+	return &response
 }
 
 // @Router /categories/{id} [put]
@@ -155,17 +132,13 @@ func (h *handlerV1) UpdateCategory(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
@@ -175,9 +148,7 @@ func (h *handlerV1) UpdateCategory(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
@@ -198,17 +169,13 @@ func (h *handlerV1) UpdateCategory(ctx *gin.Context) {
 func (h *handlerV1) DeleteCategory(ctx *gin.Context) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	err = h.storage.Category().Delete(id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
