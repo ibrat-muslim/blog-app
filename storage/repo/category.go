@@ -11,7 +11,7 @@ type Category struct {
 type GetCategoriesParams struct {
 	Page  int32
 	Limit int32
-	Title string
+	Search string
 }
 
 type GetCategoriesResult struct {

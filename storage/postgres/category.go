@@ -76,8 +76,8 @@ func (cr *categoryRepo) GetAll(params *repo.GetCategoriesParams) (*repo.GetCateg
 
 	filter := ""
 
-	if params.Title != "" {
-		str := "%" + params.Title + "%"
+	if params.Search != "" {
+		str := "%" + params.Search + "%"
 		filter += fmt.Sprintf(`
 				WHERE title ILIKE '%s'`, str,
 		)

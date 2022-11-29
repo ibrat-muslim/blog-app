@@ -24,9 +24,7 @@ func (h *handlerV1) CreateUser(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
@@ -42,24 +40,11 @@ func (h *handlerV1) CreateUser(ctx *gin.Context) {
 		Type:            req.Type,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, models.User{
-		ID:              resp.ID,
-		FirstName:       resp.FirstName,
-		LastName:        resp.LastName,
-		PhoneNumber:     resp.PhoneNumber,
-		Email:           resp.Email,
-		Gender:          resp.Gender,
-		Username:        resp.Username,
-		ProfileImageUrl: resp.ProfileImageUrl,
-		Type:            resp.Type,
-		CreatedAt:       resp.CreatedAt,
-	})
+	ctx.JSON(http.StatusCreated, parseUserToModel(resp))
 }
 
 // @Router /users/{id} [get]
@@ -75,60 +60,17 @@ func (h *handlerV1) GetUser(ctx *gin.Context) {
 
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	resp, err := h.storage.User().Get(id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, models.User{
-		ID:              resp.ID,
-		FirstName:       resp.FirstName,
-		LastName:        resp.LastName,
-		PhoneNumber:     resp.PhoneNumber,
-		Email:           resp.Email,
-		Gender:          resp.Gender,
-		Username:        resp.Username,
-		ProfileImageUrl: resp.ProfileImageUrl,
-		Type:            resp.Type,
-		CreatedAt:       resp.CreatedAt,
-	})
-}
-
-func validateGetUsersParams(ctx *gin.Context) (*repo.GetUsersParams, error) {
-	var (
-		limit int64 = 10
-		page  int64 = 1
-		err   error
-	)
-
-	if ctx.Query("limit") != "" {
-		limit, err = strconv.ParseInt(ctx.Query("limit"), 10, 64)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if ctx.Query("page") != "" {
-		page, err = strconv.ParseInt(ctx.Query("page"), 10, 64)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &repo.GetUsersParams{
-		Limit:  int32(limit),
-		Page:   int32(page),
-		Search: ctx.Query("search"),
-	}, nil
+	ctx.JSON(http.StatusOK, parseUserToModel(resp))
 }
 
 // @Router /users [get]
@@ -137,29 +79,41 @@ func validateGetUsersParams(ctx *gin.Context) (*repo.GetUsersParams, error) {
 // @Tags user
 // @Accept json
 // @Produce json
-// @Param limit query int true "Limit"
-// @Param page query int true "Page"
-// @Param search query string false "Search"
-// @Success 200 {object} models.GetUsersResult
+// @Param filter query models.GetAllParamsRequest false "Filter"
+// @Success 200 {object} models.GetUsersResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) GetUsers(ctx *gin.Context) {
-	queryParams, err := validateGetUsersParams(ctx)
+	request, err := validateGetAllParamsRequest(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	resp, err := h.storage.User().GetAll(queryParams)
+	result, err := h.storage.User().GetAll(&repo.GetUsersParams{
+		Limit:  request.Limit,
+		Page:   request.Page,
+		Search: request.Search,
+	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, resp)
+	ctx.JSON(http.StatusOK, getUsersResponse(result))
+}
+
+func getUsersResponse(data *repo.GetUsersResult) *models.GetUsersResponse {
+	response := models.GetUsersResponse{
+		Users: make([]*models.User, 0),
+		Count: data.Count,
+	}
+
+	for _, user := range data.Users {
+		u := parseUserToModel(user)
+		response.Users = append(response.Users, &u)
+	}
+
+	return &response
 }
 
 // @Router /users/{id} [put]
@@ -177,17 +131,13 @@ func (h *handlerV1) UpdateUser(ctx *gin.Context) {
 
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
@@ -205,9 +155,7 @@ func (h *handlerV1) UpdateUser(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
@@ -228,21 +176,32 @@ func (h *handlerV1) UpdateUser(ctx *gin.Context) {
 func (h *handlerV1) DeleteUser(ctx *gin.Context) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	err = h.storage.User().Delete(id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, models.OKResponse{
 		Success: "successfully deleted",
 	})
+}
+
+func parseUserToModel(user *repo.User) models.User {
+	return models.User{
+			ID:              user.ID,
+			FirstName:       user.FirstName,
+			LastName:        user.LastName,
+			PhoneNumber:     user.PhoneNumber,
+			Email:           user.Email,
+			Gender:          user.Gender,
+			Username:        user.Username,
+			ProfileImageUrl: user.ProfileImageUrl,
+			Type:            user.Type,
+			CreatedAt:       user.CreatedAt,
+	}
 }

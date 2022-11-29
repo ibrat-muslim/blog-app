@@ -51,7 +51,7 @@ func TestGetAllPosts(t *testing.T) {
 	posts, err := strg.Post().GetAll(&repo.GetPostsParams{
 		Limit: 10,
 		Page: 1,
-		Title: p.Title,
+		Search: p.Title,
 	})
 
 	require.NoError(t, err)

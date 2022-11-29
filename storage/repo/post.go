@@ -15,9 +15,9 @@ type Post struct {
 }
 
 type GetPostsParams struct {
-	Page  int32
-	Limit int32
-	Title string
+	Page   int32
+	Limit  int32
+	Search string
 }
 
 type GetPostsResult struct {
