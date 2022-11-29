@@ -239,14 +239,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Limit",
+                        "default": 10,
                         "name": "limit",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "Page",
+                        "default": 1,
                         "name": "page",
                         "in": "query",
                         "required": true
@@ -256,7 +256,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.GetCommentsResult"
+                            "$ref": "#/definitions/models.GetCommentsResponse"
                         }
                     },
                     "500": {
@@ -519,22 +519,21 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Limit",
+                        "default": 10,
                         "name": "limit",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "Page",
+                        "default": 1,
                         "name": "page",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Title",
-                        "name": "title",
+                        "name": "search",
                         "in": "query"
                     }
                 ],
@@ -542,7 +541,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.GetPostsResult"
+                            "$ref": "#/definitions/models.GetPostsResponse"
                         }
                     },
                     "500": {
@@ -1095,7 +1094,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.GetCommentsResult": {
+        "models.GetCommentsResponse": {
             "type": "object",
             "properties": {
                 "comments": {
@@ -1109,7 +1108,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.GetPostsResult": {
+        "models.GetPostsResponse": {
             "type": "object",
             "properties": {
                 "count": {

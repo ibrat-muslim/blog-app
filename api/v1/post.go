@@ -92,7 +92,7 @@ func (h *handlerV1) GetPost(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param filter query models.GetAllParamsRequest false "Filter"
-// @Success 200 {object} models.GetPostsResult
+// @Success 200 {object} models.GetPostsResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) GetPosts(ctx *gin.Context) {
 	request, err := validateGetAllParamsRequest(ctx)
