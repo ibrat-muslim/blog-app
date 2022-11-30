@@ -1,4 +1,15 @@
-DB_URL=postgresql://postgres:1421@localhost:5432/blog_db?sslmode=disable
+POSTGRES_HOST=host
+POSTGRES_PORT=port
+POSTGRES_DATABASE=database
+POSTGRES_USER=user
+POSTGRES_PASSWORD=password
+
+-include .env
+
+DB_URL=postgresql://$(POSTGRES_USER):$(POSGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DATABASE)?sslmode=disable
+
+print:
+	echo "$(DB_URL)"
 
 swag-init:
 	swag init -g api/api.go -o api/docs
@@ -12,4 +23,4 @@ migrateup:
 migratedown:
 		migrate -path migrations -database "$(DB_URL)" -verbose down
 
-.PHONY:	migrateup migratedown
+.PHONY:	start migrateup migratedown

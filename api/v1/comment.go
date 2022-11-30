@@ -192,7 +192,7 @@ func (h *handlerV1) UpdateComment(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, models.OKResponse{
-		Success: "successfully updated",
+		Message: "successfully updated",
 	})
 }
 
@@ -219,7 +219,7 @@ func (h *handlerV1) DeleteComment(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, models.OKResponse{
-		Success: "successfully deleted",
+		Message: "successfully deleted",
 	})
 }
 

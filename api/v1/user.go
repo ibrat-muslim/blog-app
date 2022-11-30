@@ -160,7 +160,7 @@ func (h *handlerV1) UpdateUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, models.OKResponse{
-		Success: "successfully updated",
+		Message: "successfully updated",
 	})
 }
 
@@ -187,7 +187,7 @@ func (h *handlerV1) DeleteUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, models.OKResponse{
-		Success: "successfully deleted",
+		Message: "successfully deleted",
 	})
 }
 

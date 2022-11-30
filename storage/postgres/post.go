@@ -95,13 +95,25 @@ func (pr *postRepo) GetAll(params *repo.GetPostsParams) (*repo.GetPostsResult, e
 
 	limit := fmt.Sprintf(" LIMIT %d OFFSET %d ", params.Limit, offset)
 
-	filter := ""
+	filter := "WHERE true"
 
 	if params.Search != "" {
 		str := "%" + params.Search + "%"
-		filter += fmt.Sprintf(`
-				WHERE title ILIKE '%s'`, str,
-		)	
+		filter += fmt.Sprintf(" AND title ILIKE '%s' ", str,)	
+	}
+
+	if params.UserID != 0 {
+		filter += fmt.Sprintf(" AND user_id = %d ", params.UserID,)	
+	}
+
+	if params.CategoryID != 0 {
+		filter += fmt.Sprintf(" AND category_id = %d ", params.CategoryID,)	
+	}
+
+	orderBy := " ORDER BY created_at DESC "
+
+	if params.SortByDate != "" {
+		orderBy = fmt.Sprintf(" ORDER BY created_at %s ", params.SortByDate)
 	}
 
 	query := `
@@ -116,10 +128,8 @@ func (pr *postRepo) GetAll(params *repo.GetPostsParams) (*repo.GetPostsResult, e
 			updated_at,
 			views_count
 		FROM posts
-		` + filter + `
-		ORDER BY created_at DESC
-		` + limit
-	
+		` + filter + orderBy + limit
+
 	err := pr.db.Select(&result.Posts, query)
 
 	if err != nil {
@@ -137,7 +147,7 @@ func (pr *postRepo) GetAll(params *repo.GetPostsParams) (*repo.GetPostsResult, e
 	return &result, nil
 }
 
-func (pr *postRepo) Update(post * repo.Post) error {
+func (pr *postRepo) Update(post *repo.Post) error {
 	query := `
 		UPDATE posts SET
 			title = $1,

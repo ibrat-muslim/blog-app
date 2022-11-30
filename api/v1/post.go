@@ -85,26 +85,82 @@ func (h *handlerV1) GetPost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, post)
 }
 
+func validateGetPostsParams(ctx *gin.Context) (*models.GetPostsParams, error) {
+	var (
+		limit      int64 = 10
+		page       int64 = 1
+		err        error
+		userID     int64
+		categoryID int64
+		sortByDate string = "desc"
+	)
+
+	if ctx.Query("limit") != "" {
+		limit, err = strconv.ParseInt(ctx.Query("limit"), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if ctx.Query("page") != "" {
+		page, err = strconv.ParseInt(ctx.Query("page"), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if ctx.Query("user_id") != "" {
+		userID, err = strconv.ParseInt(ctx.Query("user_id"), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if ctx.Query("category_id") != "" {
+		categoryID, err = strconv.ParseInt(ctx.Query("category_id"), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if ctx.Query("sort_by_date") != "" &&  //TODO
+		(ctx.Query("sort_by_date") == "asc" || ctx.Query("sort_by_date") == "desc") {
+		sortByDate = ctx.Query("sort_by_date")
+	}
+
+	return &models.GetPostsParams{
+		Limit:      int32(limit),
+		Page:       int32(page),
+		Search:     ctx.Query("search"),
+		UserID:     userID,
+		CategoryID: categoryID,
+		SortByDate: sortByDate,
+	}, nil
+}
+
 // @Router /posts [get]
 // @Summary Get posts
 // @Description Get posts
 // @Tags post
 // @Accept json
 // @Produce json
-// @Param filter query models.GetAllParamsRequest false "Filter"
+// @Param filter query models.GetPostsParams false "Filter"
 // @Success 200 {object} models.GetPostsResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) GetPosts(ctx *gin.Context) {
-	request, err := validateGetAllParamsRequest(ctx)
+	request, err := validateGetPostsParams(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	result, err := h.storage.Post().GetAll(&repo.GetPostsParams{
-		Limit:  request.Limit,
-		Page:   request.Page,
-		Search: request.Search,
+		Limit:      request.Limit,
+		Page:       request.Page,
+		Search:     request.Search,
+		UserID:     request.UserID,
+		CategoryID: request.CategoryID,
+		SortByDate: request.SortByDate,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -171,7 +227,7 @@ func (h *handlerV1) UpdatePost(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, models.OKResponse{
-		Success: "successfully updated",
+		Message: "successfully updated",
 	})
 }
 
@@ -198,7 +254,7 @@ func (h *handlerV1) DeletePost(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, models.OKResponse{
-		Success: "successfully deleted",
+		Message: "successfully deleted",
 	})
 }
 
