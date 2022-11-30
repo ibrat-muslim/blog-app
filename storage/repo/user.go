@@ -2,6 +2,11 @@ package repo
 
 import "time"
 
+const (
+	UserTypeSuperAdmin = "superadmin"
+	UserTypeUser       = "user"
+)
+
 type User struct {
 	ID              int64     `db:"id"`
 	FirstName       string    `db:"first_name"`

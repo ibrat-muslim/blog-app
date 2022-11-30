@@ -15,9 +15,12 @@ type Post struct {
 }
 
 type GetPostsParams struct {
-	Page   int32
-	Limit  int32
-	Search string
+	Page       int32
+	Limit      int32
+	Search     string
+	UserID     int64
+	CategoryID int64
+	SortByDate string
 }
 
 type GetPostsResult struct {

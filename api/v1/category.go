@@ -153,7 +153,7 @@ func (h *handlerV1) UpdateCategory(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, models.OKResponse{
-		Success: "successfully updated",
+		Message: "successfully updated",
 	})
 }
 
@@ -180,6 +180,6 @@ func (h *handlerV1) DeleteCategory(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, models.OKResponse{
-		Success: "successfully deleted",
+		Message: "successfully deleted",
 	})
 }

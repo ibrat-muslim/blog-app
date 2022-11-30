@@ -28,6 +28,15 @@ type CreatePostRequest struct {
 	CategoryID  int64   `json:"category_id"`
 }
 
+type GetPostsParams struct {
+	Limit      int32  `json:"limit" binding:"required" default:"10"`
+	Page       int32  `json:"page" binding:"required" default:"1"`
+	Search     string `json:"search"`
+	UserID     int64  `json:"user_id"`
+	CategoryID int64  `json:"category_id"`
+	SortByDate string `json:"sort_by_date" enums:"asc,desc" default:"desc"`
+}
+
 type GetPostsResponse struct {
 	Posts []*Post `json:"posts"`
 	Count int32   `json:"count"`
