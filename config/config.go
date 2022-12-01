@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
@@ -23,7 +23,7 @@ type PostgresConfig struct {
 func Load(path string) Config {
 	err := godotenv.Load(path + "/.env") // load .env file if it exists
 	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		fmt.Printf("Error loading .env file: %v", err)
 	}
 
 	conf := viper.New()

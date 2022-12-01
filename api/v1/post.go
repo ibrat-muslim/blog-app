@@ -10,6 +10,7 @@ import (
 	"github.com/ibrat-muslim/blog-app/storage/repo"
 )
 
+// @Security ApiKeyAuth
 // @Router /posts [post]
 // @Summary Create a post
 // @Description Create a post
@@ -123,7 +124,7 @@ func validateGetPostsParams(ctx *gin.Context) (*models.GetPostsParams, error) {
 		}
 	}
 
-	if ctx.Query("sort_by_date") != "" &&  //TODO
+	if ctx.Query("sort_by_date") != "" &&
 		(ctx.Query("sort_by_date") == "asc" || ctx.Query("sort_by_date") == "desc") {
 		sortByDate = ctx.Query("sort_by_date")
 	}

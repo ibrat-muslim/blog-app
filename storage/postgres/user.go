@@ -88,6 +88,35 @@ func (ur *userRepo) Get(id int64) (*repo.User, error) {
 	return &result, nil
 }
 
+func (ur *userRepo) GetByEmail(email string) (*repo.User, error) {
+	query := `
+		SELECT
+			id,
+			first_name,
+			last_name,
+			phone_number,
+			email,
+			gender,
+			password,
+			username,
+			profile_image_url,
+			type,
+			created_at
+		FROM users
+		WHERE email = $1
+	`
+
+	var result repo.User
+
+	err := ur.db.Get(&result, query, email)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 func (ur *userRepo) GetAll(params *repo.GetUsersParams) (*repo.GetUsersResult, error) {
 	result := repo.GetUsersResult{
 		Users: make([]*repo.User, 0),

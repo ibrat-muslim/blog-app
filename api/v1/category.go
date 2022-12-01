@@ -9,6 +9,7 @@ import (
 	"github.com/ibrat-muslim/blog-app/storage/repo"
 )
 
+// @Security ApiKeyAuth
 // @Router /categories [post]
 // @Summary Create a category
 // @Description Create a category

@@ -9,6 +9,7 @@ import (
 	"github.com/ibrat-muslim/blog-app/storage/repo"
 )
 
+// @Security ApiKeyAuth
 // @Router /users [post]
 // @Summary Create a user
 // @Description Create a user
@@ -47,6 +48,7 @@ func (h *handlerV1) CreateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, parseUserToModel(resp))
 }
 
+// @Security ApiKeyAuth
 // @Router /users/{id} [get]
 // @Summary Get a user by id
 // @Description Get a user by id
