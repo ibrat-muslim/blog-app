@@ -23,7 +23,6 @@ type GetCommentsResult struct {
 
 type CommentStorageI interface {
 	Create(comment *Comment) (*Comment, error)
-	Get(id int64) (*Comment, error)
 	GetAll(params *GetCommentsParams) (*GetCommentsResult, error)
 	Update(comment *Comment) error
 	Delete(id int64) error

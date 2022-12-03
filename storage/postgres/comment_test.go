@@ -9,9 +9,12 @@ import (
 )
 
 func createComment(t *testing.T) *repo.Comment {
+	post := createPost(t)
+	user := createUser(t)
+
 	comment, err := strg.Comment().Create(&repo.Comment{
-		PostID: 1,
-		UserID: 1,
+		PostID: post.ID,
+		UserID: user.ID,
 		Description: faker.Sentence(),
 	})
 
@@ -29,16 +32,6 @@ func deleteComment(id int64, t *testing.T) {
 func TestCreateComment(t *testing.T) {
 	cm := createComment(t)
 	deleteComment(cm.ID, t)
-}
-
-func TestGetComment(t *testing.T) {
-	cm := createComment(t)
-
-	comment, err := strg.Comment().Get(cm.ID)
-	require.NoError(t, err)
-	require.NotEmpty(t, comment)
-
-	deleteComment(comment.ID, t)
 }
 
 func TestGetAllComments(t *testing.T) {
@@ -59,8 +52,6 @@ func TestGetAllComments(t *testing.T) {
 func TestUpdateComment(t *testing.T) {
 	cm := createComment(t)
 
-	cm.PostID = 2
-	cm.UserID = 2
 	cm.Description = faker.Sentence()
 
 	err := strg.Comment().Update(cm)

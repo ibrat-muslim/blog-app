@@ -22,7 +22,8 @@ type File struct {
 // @Accept json
 // @Produce json
 // @Param file formData file true "File"
-// @Success 200 {object} models.OKResponse
+// @Success 201 {object} models.OKResponse
+// @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) UploadFile(ctx *gin.Context) {
 	var file File

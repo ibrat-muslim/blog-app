@@ -38,29 +38,28 @@ func New(opt *RouterOptions) *gin.Engine {
 
 	apiV1 := router.Group("/v1")
 
-	apiV1.GET("/users/:id", handlerV1.AuthMiddleware, handlerV1.GetUser)
+	apiV1.GET("/users/:id", handlerV1.GetUser)
 	apiV1.GET("/users", handlerV1.GetUsers)
 	apiV1.POST("/users", handlerV1.AuthMiddleware, handlerV1.CreateUser)
-	apiV1.PUT("/users/:id", handlerV1.UpdateUser)
-	apiV1.DELETE("users/:id", handlerV1.DeleteUser)
+	apiV1.PUT("/users/:id", handlerV1.AuthMiddleware, handlerV1.UpdateUser)
+	apiV1.DELETE("users/:id", handlerV1.AuthMiddleware, handlerV1.DeleteUser)
 
 	apiV1.GET("/categories/:id", handlerV1.GetCategory)
 	apiV1.GET("/categories", handlerV1.GetCategories)
 	apiV1.POST("/categories", handlerV1.AuthMiddleware, handlerV1.CreateCategory)
-	apiV1.PUT("/categories/:id", handlerV1.UpdateCategory)
-	apiV1.DELETE("categories/:id", handlerV1.DeleteCategory)
+	apiV1.PUT("/categories/:id", handlerV1.AuthMiddleware, handlerV1.UpdateCategory)
+	apiV1.DELETE("categories/:id", handlerV1.AuthMiddleware, handlerV1.DeleteCategory)
 
 	apiV1.GET("/posts/:id", handlerV1.GetPost)
 	apiV1.GET("/posts", handlerV1.GetPosts)
 	apiV1.POST("/posts", handlerV1.AuthMiddleware, handlerV1.CreatePost)
-	apiV1.PUT("/posts/:id", handlerV1.UpdatePost)
-	apiV1.DELETE("posts/:id", handlerV1.DeletePost)
+	apiV1.PUT("/posts/:id", handlerV1.AuthMiddleware, handlerV1.UpdatePost)
+	apiV1.DELETE("posts/:id", handlerV1.AuthMiddleware, handlerV1.DeletePost)
 
-	apiV1.GET("/comments/:id", handlerV1.GetComment)
 	apiV1.GET("/comments", handlerV1.GetComments)
-	apiV1.POST("/comments", handlerV1.CreateComment)
-	apiV1.PUT("/comments/:id", handlerV1.UpdateComment)
-	apiV1.DELETE("comments/:id", handlerV1.DeleteComment)
+	apiV1.POST("/comments", handlerV1.AuthMiddleware, handlerV1.CreateComment)
+	apiV1.PUT("/comments/:id", handlerV1.AuthMiddleware, handlerV1.UpdateComment)
+	apiV1.DELETE("comments/:id", handlerV1.AuthMiddleware, handlerV1.DeleteComment)
 
 	apiV1.GET("/likes/user-post", handlerV1.GetLike)
 	apiV1.POST("/likes", handlerV1.CreateLike)
@@ -68,6 +67,7 @@ func New(opt *RouterOptions) *gin.Engine {
 	apiV1.POST("/file-upload", handlerV1.AuthMiddleware, handlerV1.UploadFile)
 
 	apiV1.POST("/auth/register", handlerV1.Register)
+	apiV1.POST("/auth/verify", handlerV1.Verfiy)
 	apiV1.POST("/auth/login", handlerV1.Login)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

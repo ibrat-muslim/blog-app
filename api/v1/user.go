@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -18,6 +20,7 @@ import (
 // @Produce json
 // @Param user body models.CreateUserRequest true "User"
 // @Success 201 {object} models.User
+// @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) CreateUser(ctx *gin.Context) {
 
@@ -48,7 +51,6 @@ func (h *handlerV1) CreateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, parseUserToModel(resp))
 }
 
-// @Security ApiKeyAuth
 // @Router /users/{id} [get]
 // @Summary Get a user by id
 // @Description Get a user by id
@@ -57,6 +59,8 @@ func (h *handlerV1) CreateUser(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "ID"
 // @Success 200 {object} models.User
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) GetUser(ctx *gin.Context) {
 
@@ -68,6 +72,10 @@ func (h *handlerV1) GetUser(ctx *gin.Context) {
 
 	resp, err := h.storage.User().Get(id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -83,6 +91,7 @@ func (h *handlerV1) GetUser(ctx *gin.Context) {
 // @Produce json
 // @Param filter query models.GetAllParamsRequest false "Filter"
 // @Success 200 {object} models.GetUsersResponse
+// @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) GetUsers(ctx *gin.Context) {
 	request, err := validateGetAllParamsRequest(ctx)
@@ -118,6 +127,7 @@ func getUsersResponse(data *repo.GetUsersResult) *models.GetUsersResponse {
 	return &response
 }
 
+// @Security ApiKeyAuth
 // @Router /users/{id} [put]
 // @Summary Update a user
 // @Description Update a user
@@ -127,6 +137,8 @@ func getUsersResponse(data *repo.GetUsersResult) *models.GetUsersResponse {
 // @Param id path int true "ID"
 // @Param user body models.CreateUserRequest true "User"
 // @Success 200 {object} models.OKResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) UpdateUser(ctx *gin.Context) {
 	var req models.CreateUserRequest
@@ -155,8 +167,11 @@ func (h *handlerV1) UpdateUser(ctx *gin.Context) {
 		ProfileImageUrl: req.ProfileImageUrl,
 		Type:            req.Type,
 	})
-
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -166,6 +181,7 @@ func (h *handlerV1) UpdateUser(ctx *gin.Context) {
 	})
 }
 
+// @Security ApiKeyAuth
 // @Router /users/{id} [delete]
 // @Summary Delete a user
 // @Description Delete a user
@@ -174,6 +190,8 @@ func (h *handlerV1) UpdateUser(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "ID"
 // @Success 200 {object} models.OKResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) DeleteUser(ctx *gin.Context) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
@@ -184,6 +202,10 @@ func (h *handlerV1) DeleteUser(ctx *gin.Context) {
 
 	err = h.storage.User().Delete(id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -195,15 +217,15 @@ func (h *handlerV1) DeleteUser(ctx *gin.Context) {
 
 func parseUserToModel(user *repo.User) models.User {
 	return models.User{
-			ID:              user.ID,
-			FirstName:       user.FirstName,
-			LastName:        user.LastName,
-			PhoneNumber:     user.PhoneNumber,
-			Email:           user.Email,
-			Gender:          user.Gender,
-			Username:        user.Username,
-			ProfileImageUrl: user.ProfileImageUrl,
-			Type:            user.Type,
-			CreatedAt:       user.CreatedAt,
+		ID:              user.ID,
+		FirstName:       user.FirstName,
+		LastName:        user.LastName,
+		PhoneNumber:     user.PhoneNumber,
+		Email:           user.Email,
+		Gender:          user.Gender,
+		Username:        user.Username,
+		ProfileImageUrl: user.ProfileImageUrl,
+		Type:            user.Type,
+		CreatedAt:       user.CreatedAt,
 	}
 }

@@ -1,12 +1,18 @@
 package v1
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ibrat-muslim/blog-app/api/models"
 	"github.com/ibrat-muslim/blog-app/config"
 	"github.com/ibrat-muslim/blog-app/storage"
+)
+
+var (
+	ErrWrongEmailOrPass = errors.New("wrong email or password")
+	ErrUserNotVerified  = errors.New("user not verified")
 )
 
 type handlerV1 struct {

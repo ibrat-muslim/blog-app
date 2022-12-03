@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -19,6 +21,7 @@ import (
 // @Produce json
 // @Param post body models.CreatePostRequest true "Post"
 // @Success 201 {object} models.Post
+// @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) CreatePost(ctx *gin.Context) {
 
@@ -55,6 +58,8 @@ func (h *handlerV1) CreatePost(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "ID"
 // @Success 200 {object} models.Post
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) GetPost(ctx *gin.Context) {
 
@@ -66,6 +71,10 @@ func (h *handlerV1) GetPost(ctx *gin.Context) {
 
 	resp, err := h.storage.Post().Get(id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -74,6 +83,10 @@ func (h *handlerV1) GetPost(ctx *gin.Context) {
 
 	likeInfo, err := h.storage.Like().GetLikesDislikesCount(post.ID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -147,6 +160,7 @@ func validateGetPostsParams(ctx *gin.Context) (*models.GetPostsParams, error) {
 // @Produce json
 // @Param filter query models.GetPostsParams false "Filter"
 // @Success 200 {object} models.GetPostsResponse
+// @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) GetPosts(ctx *gin.Context) {
 	request, err := validateGetPostsParams(ctx)
@@ -185,6 +199,7 @@ func getPostsResponse(data *repo.GetPostsResult) *models.GetPostsResponse {
 	return &response
 }
 
+// @Security ApiKeyAuth
 // @Router /posts/{id} [put]
 // @Summary Update a post
 // @Description Update a post
@@ -194,6 +209,8 @@ func getPostsResponse(data *repo.GetPostsResult) *models.GetPostsResponse {
 // @Param id path int true "ID"
 // @Param post body models.CreatePostRequest true "Post"
 // @Success 200 {object} models.OKResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) UpdatePost(ctx *gin.Context) {
 	var req models.CreatePostRequest
@@ -223,6 +240,10 @@ func (h *handlerV1) UpdatePost(ctx *gin.Context) {
 	})
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -232,6 +253,7 @@ func (h *handlerV1) UpdatePost(ctx *gin.Context) {
 	})
 }
 
+// @Security ApiKeyAuth
 // @Router /posts/{id} [delete]
 // @Summary Delete a post
 // @Description Delete a post
@@ -240,6 +262,8 @@ func (h *handlerV1) UpdatePost(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "ID"
 // @Success 200 {object} models.OKResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) DeletePost(ctx *gin.Context) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
@@ -250,6 +274,10 @@ func (h *handlerV1) DeletePost(ctx *gin.Context) {
 
 	err = h.storage.Post().Delete(id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
