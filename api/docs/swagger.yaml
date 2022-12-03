@@ -113,8 +113,6 @@ definitions:
         - user
         type: string
       username:
-        maxLength: 30
-        minLength: 2
         type: string
     required:
     - email
@@ -122,7 +120,6 @@ definitions:
     - last_name
     - password
     - type
-    - username
     type: object
   models.ErrorResponse:
     properties:
@@ -239,16 +236,11 @@ definitions:
         maxLength: 16
         minLength: 6
         type: string
-      username:
-        maxLength: 30
-        minLength: 2
-        type: string
     required:
     - email
     - first_name
     - last_name
     - password
-    - username
     type: object
   models.User:
     properties:
@@ -375,6 +367,10 @@ paths:
             $ref: '#/definitions/models.AuthResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/models.ErrorResponse'
         "404":

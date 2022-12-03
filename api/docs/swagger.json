@@ -144,6 +144,12 @@
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -1480,8 +1486,7 @@
                 "first_name",
                 "last_name",
                 "password",
-                "type",
-                "username"
+                "type"
             ],
             "properties": {
                 "email": {
@@ -1523,9 +1528,7 @@
                     ]
                 },
                 "username": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "minLength": 2
+                    "type": "string"
                 }
             }
         },
@@ -1687,8 +1690,7 @@
                 "email",
                 "first_name",
                 "last_name",
-                "password",
-                "username"
+                "password"
             ],
             "properties": {
                 "email": {
@@ -1708,11 +1710,6 @@
                     "type": "string",
                     "maxLength": 16,
                     "minLength": 6
-                },
-                "username": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "minLength": 2
                 }
             }
         },
