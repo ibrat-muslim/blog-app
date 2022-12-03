@@ -19,6 +19,7 @@ type User struct {
 	ProfileImageUrl *string   `db:"profile_image_url"`
 	Type            string    `db:"type"`
 	CreatedAt       time.Time `db:"created_at"`
+	IsActive        bool      `db:"is_active"`
 }
 
 type GetUsersParams struct {
@@ -39,4 +40,5 @@ type UserStorageI interface {
 	GetAll(params *GetUsersParams) (*GetUsersResult, error)
 	Update(user *User) error
 	Delete(id int64) error
+	Activate(id int64) error
 }

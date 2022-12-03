@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,6 +12,7 @@ import (
 	"github.com/ibrat-muslim/blog-app/storage/repo"
 )
 
+// @Security ApiKeyAuth
 // @Router /comments [post]
 // @Summary Create a comment
 // @Description Create a comment
@@ -18,6 +21,7 @@ import (
 // @Produce json
 // @Param comment body models.CreateCommentRequest true "Comment"
 // @Success 201 {object} models.Comment
+// @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) CreateComment(ctx *gin.Context) {
 
@@ -40,39 +44,6 @@ func (h *handlerV1) CreateComment(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, models.Comment{
-		ID:          resp.ID,
-		PostID:      resp.PostID,
-		UserID:      resp.UserID,
-		Description: resp.Description,
-		CreatedAt:   resp.CreatedAt,
-		UpdatedAt:   resp.UpdatedAt,
-	})
-}
-
-// @Router /comments/{id} [get]
-// @Summary Get a comment by id
-// @Description Get a comment by id
-// @Tags comment
-// @Accept json
-// @Produce json
-// @Param id path int true "ID"
-// @Success 200 {object} models.Comment
-// @Failure 500 {object} models.ErrorResponse
-func (h *handlerV1) GetComment(ctx *gin.Context) {
-
-	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
-
-	resp, err := h.storage.Comment().Get(id)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, models.Comment{
 		ID:          resp.ID,
 		PostID:      resp.PostID,
 		UserID:      resp.UserID,
@@ -127,7 +98,7 @@ func (h *handlerV1) GetComments(ctx *gin.Context) {
 
 	result, err := h.storage.Comment().GetAll(&repo.GetCommentsParams{
 		Limit: request.Limit,
-		Page: request.Page,
+		Page:  request.Page,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -140,7 +111,7 @@ func (h *handlerV1) GetComments(ctx *gin.Context) {
 func getCommentsResponse(data *repo.GetCommentsResult) *models.GetCommentsResponse {
 	response := models.GetCommentsResponse{
 		Comments: make([]*models.Comment, 0),
-		Count: data.Count,
+		Count:    data.Count,
 	}
 
 	for _, comment := range data.Comments {
@@ -151,6 +122,7 @@ func getCommentsResponse(data *repo.GetCommentsResult) *models.GetCommentsRespon
 	return &response
 }
 
+// @Security ApiKeyAuth
 // @Router /comments/{id} [put]
 // @Summary Update a comment
 // @Description Update a comment
@@ -160,6 +132,8 @@ func getCommentsResponse(data *repo.GetCommentsResult) *models.GetCommentsRespon
 // @Param id path int true "ID"
 // @Param comment body models.CreateCommentRequest true "Comment"
 // @Success 200 {object} models.OKResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) UpdateComment(ctx *gin.Context) {
 	var req models.CreateCommentRequest
@@ -185,8 +159,11 @@ func (h *handlerV1) UpdateComment(ctx *gin.Context) {
 		Description: req.Description,
 		UpdatedAt:   &updatedAt,
 	})
-
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -196,6 +173,7 @@ func (h *handlerV1) UpdateComment(ctx *gin.Context) {
 	})
 }
 
+// @Security ApiKeyAuth
 // @Router /comments/{id} [delete]
 // @Summary Delete a comment
 // @Description Delete a comment
@@ -204,6 +182,8 @@ func (h *handlerV1) UpdateComment(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "ID"
 // @Success 200 {object} models.OKResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) DeleteComment(ctx *gin.Context) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
@@ -214,6 +194,10 @@ func (h *handlerV1) DeleteComment(ctx *gin.Context) {
 
 	err = h.storage.Comment().Delete(id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}

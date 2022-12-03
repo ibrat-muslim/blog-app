@@ -47,30 +47,6 @@ func (cmr *commentRepo) Create(comment *repo.Comment) (*repo.Comment, error) {
 	return comment, nil
 }
 
-func (cmr *commentRepo) Get(id int64) (*repo.Comment, error) {
-	query := `
-		SELECT
-			id,
-			post_id,
-			user_id,
-			description,
-			created_at,
-			updated_at
-		FROM comments
-		WHERE id = $1
-	`
-
-	var result repo.Comment
-
-	err := cmr.db.Get(&result, query, id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &result, nil
-}
-
 func (cmr *commentRepo) GetAll(params *repo.GetCommentsParams) (*repo.GetCommentsResult, error) {
 	result := repo.GetCommentsResult{
 		Comments: make([]*repo.Comment, 0),
@@ -105,17 +81,13 @@ func (cmr *commentRepo) GetAll(params *repo.GetCommentsParams) (*repo.GetComment
 func (cmr *commentRepo) Update(comment *repo.Comment) error {
 	query := `
 		UPDATE comments SET
-			post_id = $1,
-			user_id = $2,
-			description = $3,
-			updated_at = $4
-		WHERE id = $5
+			description = $1,
+			updated_at = $2
+		WHERE id = $3
 	`
 
 	result, err := cmr.db.Exec(
 		query,
-		comment.PostID,
-		comment.UserID,
 		comment.Description,
 		comment.UpdatedAt,
 		comment.ID,
