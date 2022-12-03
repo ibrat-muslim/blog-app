@@ -13,22 +13,28 @@ import (
 var (
 	ErrWrongEmailOrPass = errors.New("wrong email or password")
 	ErrUserNotVerified  = errors.New("user not verified")
+	ErrEmailExists      = errors.New("email already exists")
+	ErrIncorrectCode    = errors.New("incorrect verification code")
+	ErrCodeExpired      = errors.New("verification code has been expired")
 )
 
 type handlerV1 struct {
-	cfg     *config.Config
-	storage storage.StorageI
+	cfg      *config.Config
+	storage  storage.StorageI
+	inMemory storage.InMemoryStorageI
 }
 
 type HandlerV1Options struct {
-	Cfg     *config.Config
-	Storage storage.StorageI
+	Cfg      *config.Config
+	Storage  storage.StorageI
+	InMemory storage.InMemoryStorageI
 }
 
 func New(options *HandlerV1Options) *handlerV1 {
 	return &handlerV1{
-		cfg:     options.Cfg,
-		storage: options.Storage,
+		cfg:      options.Cfg,
+		storage:  options.Storage,
+		inMemory: options.InMemory,
 	}
 }
 

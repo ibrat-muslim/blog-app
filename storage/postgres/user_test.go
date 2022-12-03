@@ -13,6 +13,7 @@ func createUser(t *testing.T) *repo.User {
 	gender := "male"
 	url := faker.URL()
 	profileType := "user"
+	username := faker.Username()
 
 	user, err := strg.User().Create(&repo.User{
 		FirstName:       faker.FirstName(),
@@ -21,7 +22,7 @@ func createUser(t *testing.T) *repo.User {
 		Email:           faker.Email(),
 		Gender:          &gender,
 		Password:        faker.Password(),
-		Username:        faker.Username(),
+		Username:        &username,
 		ProfileImageUrl: &url,
 		Type:            profileType,
 	})
@@ -73,6 +74,7 @@ func TestUpdateUser(t *testing.T) {
 	gender := "female"
 	url := faker.URL()
 	profileType := "superadmin"
+	username := faker.Username()
 
 	u := createUser(t)
 
@@ -82,7 +84,7 @@ func TestUpdateUser(t *testing.T) {
 	u.Email = faker.Email()
 	u.Gender = &gender
 	u.Password = faker.Password()
-	u.Username = faker.Username()
+	u.Username = &username
 	u.ProfileImageUrl = &url
 	u.Type = profileType
 

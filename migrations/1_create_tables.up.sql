@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users(
     email VARCHAR(50) NOT NULL UNIQUE,
     gender VARCHAR(10) CHECK (gender IN('male', 'female')),
     password VARCHAR NOT NULL,
-    username VARCHAR(30) NOT NULL UNIQUE,
+    username VARCHAR(30) UNIQUE,
     profile_image_url VARCHAR,
     type VARCHAR(255) CHECK (type IN('superadmin', 'user')) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -44,7 +44,7 @@ CREATE TABLE likes(
     post_id INTEGER NOT NULL REFERENCES posts(id),
     user_id INTEGER NOT NULL REFERENCES users(id),
     status BOOLEAN NOT NULL,
-    UNIQUE(post_id, user)
+    UNIQUE(post_id, user_id)
 );
 
 CREATE INDEX IF NOT EXISTS posts_title_idx ON posts(title);

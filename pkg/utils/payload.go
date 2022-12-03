@@ -17,7 +17,6 @@ var (
 type Payload struct {
 	ID        uuid.UUID `json:"id"`
 	UserID    int64     `json:"user_id"`
-	Username  string    `json:"username"`
 	Email     string    `json:"email"`
 	UserType  string    `json:"type"`
 	IssuedAt  time.Time `json:"issued_at"`
@@ -34,7 +33,6 @@ func NewPayload(params *TokenParams) (*Payload, error) {
 	payload := &Payload{
 		ID:        tokenID,
 		UserID:    params.UserID,
-		Username:  params.Username,
 		Email:     params.Email,
 		UserType:  params.UserType,
 		IssuedAt:  time.Now(),

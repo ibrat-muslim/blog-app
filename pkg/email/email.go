@@ -23,11 +23,9 @@ const (
 
 func SendEmail(cfg *config.Config, req *SendEmailRequest) error {
 	from := cfg.Smtp.Sender
-	fmt.Println(from)
 	to := req.To
 
 	password := cfg.Smtp.Password
-	fmt.Println(password)
 
 	var body bytes.Buffer
 

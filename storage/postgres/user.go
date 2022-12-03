@@ -29,9 +29,8 @@ func (ur *userRepo) Create(user *repo.User) (*repo.User, error) {
 			password,
 			username,
 			profile_image_url,
-			type,
-			is_active
-		) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			type
+		) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING id, created_at
 	`
 
@@ -46,7 +45,6 @@ func (ur *userRepo) Create(user *repo.User) (*repo.User, error) {
 		user.Username,
 		user.ProfileImageUrl,
 		user.Type,
-		user.IsActive,
 	)
 
 	err := row.Scan(
@@ -74,8 +72,7 @@ func (ur *userRepo) Get(id int64) (*repo.User, error) {
 			username,
 			profile_image_url,
 			type,
-			created_at,
-			is_active
+			created_at
 		FROM users
 		WHERE id = $1
 	`
@@ -130,12 +127,12 @@ func (ur *userRepo) GetAll(params *repo.GetUsersParams) (*repo.GetUsersResult, e
 
 	limit := fmt.Sprintf(" LIMIT %d OFFSET %d ", params.Limit, offset)
 
-	filter := " WHERE is_active = true "
+	filter := ""
 
 	if params.Search != "" {
 		str := "%" + params.Search + "%"
 		filter += fmt.Sprintf(`
-				AND first_name ILIKE '%s' OR last_name ILIKE '%s' OR phone_number ILIKE '%s' 
+				WHERE first_name ILIKE '%s' OR last_name ILIKE '%s' OR phone_number ILIKE '%s' 
 				OR email ILIKE '%s' OR username ILIKE '%s'`,
 			str, str, str, str, str,
 		)
@@ -247,18 +244,6 @@ func (ur *userRepo) Delete(id int64) error {
 
 	if rowsCount == 0 {
 		return sql.ErrNoRows
-	}
-
-	return nil
-}
-
-func (ur *userRepo) Activate(id int64) error {
-	query := `UPDATE users SET is_active = true WHERE id = $1`
-
-	_, err := ur.db.Exec(query, id)
-
-	if err != nil {
-		return err
 	}
 
 	return nil
