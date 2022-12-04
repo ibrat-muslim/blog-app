@@ -1300,6 +1300,27 @@ paths:
       summary: Update a user
       tags:
       - user
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Get a user by token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get a user by token
+      tags:
+      - user
 securityDefinitions:
   ApiKeyAuth:
     in: header

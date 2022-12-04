@@ -1,0 +1,1 @@
+DELETE FROM users WHERE email = 'imuslimbekov1421@gmail.com';

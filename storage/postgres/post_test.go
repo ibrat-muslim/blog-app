@@ -9,14 +9,14 @@ import (
 )
 
 func createPost(t *testing.T) *repo.Post {
-	url := faker.URL()
+	user := createUser(t)
+	category := createCategory(t)
 
 	post, err := strg.Post().Create(&repo.Post{
 		Title: faker.Sentence(),
 		Description: faker.Sentence(),
-		ImageUrl: &url,
-		UserID: 1,
-		CategoryID: 1,
+		UserID: user.ID,
+		CategoryID: category.ID,
 	})
 
 	require.NoError(t, err)
@@ -62,15 +62,12 @@ func TestGetAllPosts(t *testing.T) {
 }
 
 func TestUpdatePost(t *testing.T) {
-	url := faker.URL()
-
 	p := createPost(t)
+	category := createCategory(t)
 
 	p.Title = faker.Sentence()
 	p.Description = faker.Sentence()
-	p.ImageUrl = &url
-	p.UserID = 2
-	p.CategoryID = 2
+	p.CategoryID = category.ID
 	
 	err := strg.Post().Update(p)
 	require.NoError(t, err)

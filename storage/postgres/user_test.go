@@ -9,22 +9,12 @@ import (
 )
 
 func createUser(t *testing.T) *repo.User {
-	phoneNumber := faker.Phonenumber()
-	gender := "male"
-	url := faker.URL()
-	profileType := "user"
-	username := faker.Username()
-
 	user, err := strg.User().Create(&repo.User{
 		FirstName:       faker.FirstName(),
 		LastName:        faker.LastName(),
-		PhoneNumber:     &phoneNumber,
 		Email:           faker.Email(),
-		Gender:          &gender,
 		Password:        faker.Password(),
-		Username:        &username,
-		ProfileImageUrl: &url,
-		Type:            profileType,
+		Type:            repo.UserTypeUser,
 	})
 
 	require.NoError(t, err)
@@ -70,23 +60,13 @@ func TestGetAllUsers(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	phoneNumber := faker.Phonenumber()
-	gender := "female"
-	url := faker.URL()
-	profileType := "superadmin"
-	username := faker.Username()
-
 	u := createUser(t)
 
 	u.FirstName = faker.FirstName()
 	u.LastName = faker.LastName()
-	u.PhoneNumber = &phoneNumber
 	u.Email = faker.Email()
-	u.Gender = &gender
 	u.Password = faker.Password()
-	u.Username = &username
-	u.ProfileImageUrl = &url
-	u.Type = profileType
+	u.Type = repo.UserTypeUser
 
 	err := strg.User().Update(u)
 	require.NoError(t, err)

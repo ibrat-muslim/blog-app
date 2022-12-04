@@ -153,10 +153,9 @@ func (pr *postRepo) Update(post *repo.Post) error {
 			title = $1,
 			description = $2,
 			image_url = $3,
-			user_id = $4,
-			category_id = $5,
-			updated_at = $6
-		WHERE id = $7
+			category_id = $4,
+			updated_at = $5
+		WHERE id = $6
 	`
 
 	result, err := pr.db.Exec(
@@ -164,7 +163,6 @@ func (pr *postRepo) Update(post *repo.Post) error {
 		post.Title,
 		post.Description,
 		post.ImageUrl,
-		post.UserID,
 		post.CategoryID,
 		post.UpdatedAt,
 		post.ID,
