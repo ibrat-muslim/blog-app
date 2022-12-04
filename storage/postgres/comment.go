@@ -57,20 +57,45 @@ func (cmr *commentRepo) GetAll(params *repo.GetCommentsParams) (*repo.GetComment
 
 	limit := fmt.Sprintf(" LIMIT %d OFFSET %d ", params.Limit, offset)
 
+	filter := " WHERE true "
+
+	if params.PostID != 0 {
+		filter += fmt.Sprintf(" AND c.post_id = %d ", params.PostID)
+	}
+
+	if params.UserID != 0 {
+		filter += fmt.Sprintf(" AND c.user_id = %d ", params.UserID)
+	}
+
 	query := `
 		SELECT
-			id,
-			post_id,
-			user_id,
-			description,
-			created_at,
-			updated_at
-		FROM comments
-		ORDER BY created_at DESC
+			c.id,
+			c.post_id,
+			c.user_id,
+			c.description,
+			c.created_at,
+			c.updated_at,
+			u.first_name,
+			u.last_name,
+			u.email,
+			u.profile_image_url
+		FROM comments c
+		INNER JOIN users u ON u.id = c.user_id
+		` + filter + `
+		ORDER BY c.created_at DESC
 		` + limit
-	
+
 	err := cmr.db.Select(&result.Comments, query)
 
+	if err != nil {
+		return nil, err
+	}
+
+	queryCount := `
+		SELECT count(1) FROM comments c
+		INNER JOIN users u ON u.id = c.user_id ` + filter
+	
+	err = cmr.db.Get(&result.Count, queryCount)
 	if err != nil {
 		return nil, err
 	}

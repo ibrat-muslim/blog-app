@@ -33,9 +33,15 @@ func (h *handlerV1) CreateComment(ctx *gin.Context) {
 		return
 	}
 
+	payload, err := h.GetAuthPayload(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	resp, err := h.storage.Comment().Create(&repo.Comment{
 		PostID:      req.PostID,
-		UserID:      req.UserID,
+		UserID:      payload.UserID,
 		Description: req.Description,
 	})
 	if err != nil {
@@ -43,21 +49,16 @@ func (h *handlerV1) CreateComment(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, models.Comment{
-		ID:          resp.ID,
-		PostID:      resp.PostID,
-		UserID:      resp.UserID,
-		Description: resp.Description,
-		CreatedAt:   resp.CreatedAt,
-		UpdatedAt:   resp.UpdatedAt,
-	})
+	ctx.JSON(http.StatusCreated, parseCommentToModel(resp))
 }
 
 func validateGetCommentsParams(ctx *gin.Context) (*models.GetCommentsParams, error) {
 	var (
-		limit int64 = 10
-		page  int64 = 1
-		err   error
+		limit  int64 = 10
+		page   int64 = 1
+		postID int64
+		userID int64
+		err    error
 	)
 
 	if ctx.Query("limit") != "" {
@@ -74,9 +75,25 @@ func validateGetCommentsParams(ctx *gin.Context) (*models.GetCommentsParams, err
 		}
 	}
 
+	if ctx.Query("post_id") != "" {
+		postID, err = strconv.ParseInt(ctx.Query("post_id"), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if ctx.Query("user_id") != "" {
+		userID, err = strconv.ParseInt(ctx.Query("user_id"), 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &models.GetCommentsParams{
-		Limit: int32(limit),
-		Page:  int32(page),
+		Limit:  int32(limit),
+		Page:   int32(page),
+		PostID: postID,
+		UserID: userID,
 	}, nil
 }
 
@@ -97,8 +114,10 @@ func (h *handlerV1) GetComments(ctx *gin.Context) {
 	}
 
 	result, err := h.storage.Comment().GetAll(&repo.GetCommentsParams{
-		Limit: request.Limit,
-		Page:  request.Page,
+		Limit:  request.Limit,
+		Page:   request.Page,
+		PostID: request.PostID,
+		UserID: request.UserID,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -150,12 +169,18 @@ func (h *handlerV1) UpdateComment(ctx *gin.Context) {
 		return
 	}
 
+	payload, err := h.GetAuthPayload(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	updatedAt := time.Now()
 
 	err = h.storage.Comment().Update(&repo.Comment{
 		ID:          id,
 		PostID:      req.PostID,
-		UserID:      req.UserID,
+		UserID:      payload.UserID,
 		Description: req.Description,
 		UpdatedAt:   &updatedAt,
 	})
@@ -215,5 +240,12 @@ func parseCommentToModel(comment *repo.Comment) models.Comment {
 		Description: comment.Description,
 		CreatedAt:   comment.CreatedAt,
 		UpdatedAt:   comment.UpdatedAt,
+		User: &models.CommentUser{
+			ID:              comment.UserID,
+			FirstName:       comment.User.FirstName,
+			LastName:        comment.User.LastName,
+			Email:           comment.User.Email,
+			ProfileImageUrl: comment.User.ProfileImageUrl,
+		},
 	}
 }

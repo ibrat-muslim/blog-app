@@ -40,8 +40,23 @@ definitions:
         type: integer
       updated_at:
         type: string
+      user:
+        $ref: '#/definitions/models.CommentUser'
       user_id:
         type: integer
+    type: object
+  models.CommentUser:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      profile_image_url:
+        type: string
     type: object
   models.CreateCategoryRequest:
     properties:
@@ -57,8 +72,9 @@ definitions:
         type: string
       post_id:
         type: integer
-      user_id:
-        type: integer
+    required:
+    - description
+    - post_id
     type: object
   models.CreateLikeRequest:
     properties:
@@ -79,8 +95,6 @@ definitions:
         type: string
       title:
         type: string
-      user_id:
-        type: integer
     type: object
   models.CreateUserRequest:
     properties:
@@ -125,6 +139,13 @@ definitions:
     properties:
       error:
         type: string
+    type: object
+  models.ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
     type: object
   models.GetCategoriesResponse:
     properties:
@@ -242,6 +263,15 @@ definitions:
     - last_name
     - password
     type: object
+  models.UpdatePasswordRequest:
+    properties:
+      password:
+        maxLength: 16
+        minLength: 6
+        type: string
+    required:
+    - password
+    type: object
   models.User:
     properties:
       created_at:
@@ -282,6 +312,40 @@ info:
   title: Swagger for blog api
   version: "1.0"
 paths:
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Forgot password
+      parameters:
+      - description: Data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.OKResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Forgot password
+      tags:
+      - auth
   /auth/login:
     post:
       consumes:
@@ -346,6 +410,38 @@ paths:
       summary: Register a user
       tags:
       - auth
+  /auth/update-password:
+    post:
+      consumes:
+      - application/json
+      description: Update password
+      parameters:
+      - description: Data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OKResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update password
+      tags:
+      - auth
   /auth/verify:
     post:
       consumes:
@@ -382,6 +478,40 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Verify user
+      tags:
+      - auth
+  /auth/verify-forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Verify forgot password
+      parameters:
+      - description: Data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.VerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Verify forgot password
       tags:
       - auth
   /categories:
@@ -586,6 +716,12 @@ paths:
         in: query
         name: page
         required: true
+        type: integer
+      - in: query
+        name: post_id
+        type: integer
+      - in: query
+        name: user_id
         type: integer
       produces:
       - application/json

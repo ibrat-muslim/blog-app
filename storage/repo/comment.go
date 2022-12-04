@@ -9,11 +9,19 @@ type Comment struct {
 	Description string     `db:"description"`
 	CreatedAt   time.Time  `db:"created_at"`
 	UpdatedAt   *time.Time `db:"updated_at"`
+	User        struct {
+		FirstName       string  `db:"first_name"`
+		LastName        string  `db:"last_name"`
+		Email           string  `db:"email"`
+		ProfileImageUrl *string `db:"profile_image_url"`
+	}
 }
 
 type GetCommentsParams struct {
-	Page  int32
-	Limit int32
+	Page   int32
+	Limit  int32
+	PostID int64
+	UserID int64
 }
 
 type GetCommentsResult struct {
