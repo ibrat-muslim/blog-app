@@ -51,9 +51,7 @@ func (h *handlerV1) CreatePost(ctx *gin.Context) {
 		return
 	}
 
-	post := parsePostToModel(resp)
-
-	ctx.JSON(http.StatusCreated, post)
+	ctx.JSON(http.StatusCreated, parsePostToModel(resp))
 }
 
 // @Router /posts/{id} [get]
@@ -188,10 +186,16 @@ func (h *handlerV1) GetPosts(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, getPostsResponse(result))
+	response, err := getPostsResponse(h, result)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }
 
-func getPostsResponse(data *repo.GetPostsResult) *models.GetPostsResponse {
+func getPostsResponse(h *handlerV1, data *repo.GetPostsResult) (*models.GetPostsResponse, error) {
 	response := models.GetPostsResponse{
 		Posts: make([]*models.Post, 0),
 		Count: data.Count,
@@ -199,10 +203,21 @@ func getPostsResponse(data *repo.GetPostsResult) *models.GetPostsResponse {
 
 	for _, post := range data.Posts {
 		p := parsePostToModel(post)
+
+		likeInfo, err := h.storage.Like().GetLikesDislikesCount(p.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		p.LikeInfo = &models.PostLikeInfo{
+			LikesCount:    likeInfo.LikesCount,
+			DislikesCount: likeInfo.DislikesCount,
+		}
+		
 		response.Posts = append(response.Posts, &p)
 	}
 
-	return &response
+	return &response, nil
 }
 
 // @Security ApiKeyAuth

@@ -12,20 +12,24 @@ type Post struct {
 	CreatedAt   time.Time  `db:"created_at"`
 	UpdatedAt   *time.Time `db:"updated_at"`
 	ViewsCount  int32      `db:"views_count"`
+	LikeInfo    struct {
+		LikesCount    int64 `db:"likes_count"`
+		DisLikesCount int64 `db:"dislikes_count"`
+	}
 }
 
 type GetPostsParams struct {
-	Page       int32
-	Limit      int32
-	Search     string
-	UserID     int64
-	CategoryID int64
-	SortByDate string
+	Limit      int32  `db:"limit"`
+	Page       int32  `db:"page"`
+	Search     string `db:"search"`
+	UserID     int64  `db:"user_id"`
+	CategoryID int64  `db:"category_id"`
+	SortByDate string `db:"sort_by_date"`
 }
 
 type GetPostsResult struct {
-	Posts []*Post
-	Count int32
+	Posts []*Post `db:"posts"`
+	Count int32   `db:"count"`
 }
 
 type PostStorageI interface {

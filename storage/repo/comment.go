@@ -18,15 +18,15 @@ type Comment struct {
 }
 
 type GetCommentsParams struct {
-	Page   int32
-	Limit  int32
-	PostID int64
-	UserID int64
+	Limit  int32 `db:"limit"`
+	Page   int32 `db:"page"`
+	PostID int64 `db:"post_id"`
+	UserID int64 `db:"user_id"`
 }
 
 type GetCommentsResult struct {
-	Comments []*Comment
-	Count    int32
+	Comments []*Comment `db:"comments"`
+	Count    int32      `db:"count"`
 }
 
 type CommentStorageI interface {

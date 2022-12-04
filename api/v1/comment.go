@@ -135,6 +135,15 @@ func getCommentsResponse(data *repo.GetCommentsResult) *models.GetCommentsRespon
 
 	for _, comment := range data.Comments {
 		c := parseCommentToModel(comment)
+
+		c.User = &models.CommentUser{
+			ID:              comment.UserID,
+			FirstName:       comment.User.FirstName,
+			LastName:        comment.User.LastName,
+			Email:           comment.User.Email,
+			ProfileImageUrl: comment.User.ProfileImageUrl,
+		}
+
 		response.Comments = append(response.Comments, &c)
 	}
 
@@ -240,12 +249,5 @@ func parseCommentToModel(comment *repo.Comment) models.Comment {
 		Description: comment.Description,
 		CreatedAt:   comment.CreatedAt,
 		UpdatedAt:   comment.UpdatedAt,
-		User: &models.CommentUser{
-			ID:              comment.UserID,
-			FirstName:       comment.User.FirstName,
-			LastName:        comment.User.LastName,
-			Email:           comment.User.Email,
-			ProfileImageUrl: comment.User.ProfileImageUrl,
-		},
 	}
 }

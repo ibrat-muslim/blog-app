@@ -7,17 +7,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createLike(t *testing.T) *repo.Like {
-	like, err := strg.Like().Create(&repo.Like{
-		PostID: 1,
-		UserID: 1,
+func createLike(t *testing.T) {
+	post := createPost(t)
+	user := createUser(t)
+
+	err := strg.Like().CreateOrUpdate(&repo.Like{
+		PostID: post.ID,
+		UserID: user.ID,
 		Status: true,
 	})
 
 	require.NoError(t, err)
-	require.NotEmpty(t, like)
-
-	return like
 }
 
 func TestCreateLike(t *testing.T) {
@@ -25,17 +25,20 @@ func TestCreateLike(t *testing.T) {
 }
 
 func TestGetLike(t *testing.T) {
-	l := createLike(t)
+	createLike(t)
+	post := createPost(t)
+	user := createUser(t)
 
-	like, err := strg.Like().Get(l.UserID, l.PostID)
+	like, err := strg.Like().Get(post.ID, user.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, like)
 }
 
 func TestGetLikesDislikesCount(t *testing.T) {  //TODO
-	l := createLike(t)
+	createLike(t)
+	post := createPost(t)
 
-	result, err := strg.Like().GetLikesDislikesCount(l.PostID)
+	result, err := strg.Like().GetLikesDislikesCount(post.ID)
 
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, int(result.LikesCount), 0)
