@@ -32,7 +32,7 @@ func (h *handlerV1) CreateCategory(ctx *gin.Context) {
 	}
 
 	if payload.UserType != repo.UserTypeSuperAdmin {
-		ctx.JSON(http.StatusForbidden, errorResponse(err))
+		ctx.JSON(http.StatusForbidden, errorResponse(ErrForbidden))
 		return
 	}
 
@@ -163,7 +163,7 @@ func (h *handlerV1) UpdateCategory(ctx *gin.Context) {
 	}
 
 	if payload.UserType != repo.UserTypeSuperAdmin {
-		ctx.JSON(http.StatusForbidden, errorResponse(err))
+		ctx.JSON(http.StatusForbidden, errorResponse(ErrForbidden))
 		return
 	}
 
@@ -221,7 +221,7 @@ func (h *handlerV1) DeleteCategory(ctx *gin.Context) {
 	}
 
 	if payload.UserType != repo.UserTypeSuperAdmin {
-		ctx.JSON(http.StatusForbidden, errorResponse(err))
+		ctx.JSON(http.StatusForbidden, errorResponse(ErrForbidden))
 		return
 	}
 	

@@ -83,6 +83,31 @@ func (h *handlerV1) GetUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, parseUserToModel(resp))
 }
 
+// @Security ApiKeyAuth
+// @Router /users/me [get]
+// @Summary Get a user by token
+// @Description Get a user by token
+// @Tags user
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.User
+// @Failure 500 {object} models.ErrorResponse
+func (h *handlerV1) GetUserProfile(ctx *gin.Context) {
+	payload, err := h.GetAuthPayload(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	
+	resp, err := h.storage.User().Get(payload.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, parseUserToModel(resp))
+}
+
 // @Router /users [get]
 // @Summary Get users
 // @Description Get users

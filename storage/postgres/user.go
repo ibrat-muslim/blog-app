@@ -220,15 +220,7 @@ func (ur *userRepo) Update(user *repo.User) error {
 }
 
 func (ur *userRepo) Delete(id int64) error {
-	query := `DELETE FROM posts WHERE user_id = $1`
-
-	_, err := ur.db.Exec(query, id)
-
-	if err != nil {
-		return err
-	}
-
-	query = `DELETE FROM users WHERE id = $1`
+	query := `DELETE FROM users WHERE id = $1`
 
 	resutl, err := ur.db.Exec(query, id)
 

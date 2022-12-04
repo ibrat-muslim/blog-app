@@ -178,18 +178,10 @@ func (h *handlerV1) UpdateComment(ctx *gin.Context) {
 		return
 	}
 
-	payload, err := h.GetAuthPayload(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
 	updatedAt := time.Now()
 
 	err = h.storage.Comment().Update(&repo.Comment{
 		ID:          id,
-		PostID:      req.PostID,
-		UserID:      payload.UserID,
 		Description: req.Description,
 		UpdatedAt:   &updatedAt,
 	})

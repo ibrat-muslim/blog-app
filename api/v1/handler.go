@@ -16,6 +16,7 @@ var (
 	ErrEmailExists      = errors.New("email already exists")
 	ErrIncorrectCode    = errors.New("incorrect verification code")
 	ErrCodeExpired      = errors.New("verification code has been expired")
+	ErrForbidden        = errors.New("forbidden")
 )
 
 type handlerV1 struct {

@@ -248,12 +248,6 @@ func (h *handlerV1) UpdatePost(ctx *gin.Context) {
 		return
 	}
 
-	payload, err := h.GetAuthPayload(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
 	updatedAt := time.Now()
 
 	err = h.storage.Post().Update(&repo.Post{
@@ -261,7 +255,6 @@ func (h *handlerV1) UpdatePost(ctx *gin.Context) {
 		Title:       req.Title,
 		Description: req.Description,
 		ImageUrl:    req.ImageUrl,
-		UserID:      payload.UserID,
 		CategoryID:  req.CategoryID,
 		UpdatedAt:   &updatedAt,
 	})
