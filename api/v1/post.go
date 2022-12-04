@@ -33,11 +33,17 @@ func (h *handlerV1) CreatePost(ctx *gin.Context) {
 		return
 	}
 
+	payload, err := h.GetAuthPayload(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	resp, err := h.storage.Post().Create(&repo.Post{
 		Title:       req.Title,
 		Description: req.Description,
 		ImageUrl:    req.ImageUrl,
-		UserID:      req.UserID,
+		UserID:      payload.UserID,
 		CategoryID:  req.CategoryID,
 	})
 	if err != nil {
@@ -227,6 +233,12 @@ func (h *handlerV1) UpdatePost(ctx *gin.Context) {
 		return
 	}
 
+	payload, err := h.GetAuthPayload(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	updatedAt := time.Now()
 
 	err = h.storage.Post().Update(&repo.Post{
@@ -234,7 +246,7 @@ func (h *handlerV1) UpdatePost(ctx *gin.Context) {
 		Title:       req.Title,
 		Description: req.Description,
 		ImageUrl:    req.ImageUrl,
-		UserID:      req.UserID,
+		UserID:      payload.UserID,
 		CategoryID:  req.CategoryID,
 		UpdatedAt:   &updatedAt,
 	})

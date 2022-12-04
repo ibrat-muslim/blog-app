@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	HttpPort string
-	Postgres PostgresConfig
-	Smtp     Smtp
-	Redis    Redis
+	HttpPort      string
+	Postgres      PostgresConfig
+	Smtp          Smtp
+	Redis         Redis
+	AuthSecretKey string
 }
 
 type PostgresConfig struct {
@@ -56,6 +57,7 @@ func Load(path string) Config {
 		Redis: Redis{
 			Addr: conf.GetString("REDIS_ADDR"),
 		},
+		AuthSecretKey: conf.GetString("AUTH_SECRET_KEY"),
 	}
 
 	return cfg
