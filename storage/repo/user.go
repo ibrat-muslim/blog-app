@@ -22,19 +22,19 @@ type User struct {
 }
 
 type GetUsersParams struct {
-	Page   int32
-	Limit  int32
-	Search string
+	Limit  int32  `db:"limit"`
+	Page   int32  `db:"page"`
+	Search string `db:"search"`
 }
 
 type GetUsersResult struct {
-	Users []*User
-	Count int32
+	Users []*User `db:"users"`
+	Count int32   `db:"count"`
 }
 
 type UpdatePassword struct {
-	UserID   int64
-	Password string
+	UserID   int64  `db:"user_id"`
+	Password string `db:"password"`
 }
 
 type UserStorageI interface {

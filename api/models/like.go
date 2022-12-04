@@ -7,8 +7,7 @@ type Like struct {
 	Status bool  `json:"status"`
 }
 
-type CreateLikeRequest struct {
-	PostID int64 `json:"post_id"`
-	UserID int64 `json:"user_id"`
+type CreateOrUpdateLikeRequest struct {
+	PostID int64 `json:"post_id" binding:"required"`
 	Status bool  `json:"status"`
 }

@@ -887,7 +887,12 @@ const docTemplate = `{
         },
         "/likes": {
             "post": {
-                "description": "Create like",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create or update like",
                 "consumes": [
                     "application/json"
                 ],
@@ -897,7 +902,7 @@ const docTemplate = `{
                 "tags": [
                     "like"
                 ],
-                "summary": "Create like",
+                "summary": "Create or update like",
                 "parameters": [
                     {
                         "description": "Like",
@@ -905,15 +910,21 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreateLikeRequest"
+                            "$ref": "#/definitions/models.CreateOrUpdateLikeRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Like"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
@@ -927,6 +938,11 @@ const docTemplate = `{
         },
         "/likes/user-post": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get like by user and post",
                 "consumes": [
                     "application/json"
@@ -952,6 +968,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Like"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
@@ -1641,17 +1663,17 @@ const docTemplate = `{
                 }
             }
         },
-        "models.CreateLikeRequest": {
+        "models.CreateOrUpdateLikeRequest": {
             "type": "object",
+            "required": [
+                "post_id"
+            ],
             "properties": {
                 "post_id": {
                     "type": "integer"
                 },
                 "status": {
                     "type": "boolean"
-                },
-                "user_id": {
-                    "type": "integer"
                 }
             }
         },

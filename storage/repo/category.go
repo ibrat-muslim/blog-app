@@ -9,14 +9,14 @@ type Category struct {
 }
 
 type GetCategoriesParams struct {
-	Page  int32
-	Limit int32
-	Search string
+	Limit  int32  `db:"limit"`
+	Page   int32  `db:"page"`
+	Search string `db:"search"`
 }
 
 type GetCategoriesResult struct {
-	Categories []*Category
-	Count      int32
+	Categories []*Category `db:"categories"`
+	Count      int32       `db:"count"`
 }
 
 type CategoryStorageI interface {

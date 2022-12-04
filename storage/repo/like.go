@@ -8,12 +8,12 @@ type Like struct {
 }
 
 type LikesDislikesCountsResult struct {
-	LikesCount    int64
-	DislikesCount int64
+	LikesCount    int64 `db:"likes_count"`
+	DislikesCount int64	`db:"dislikes_count"`
 }
 
 type LikeStorageI interface {
-	Create(like *Like) (*Like, error)
-	Get(userID, postID int64) (*Like, error)
+	CreateOrUpdate(like *Like) error
+	Get(postID, userID int64) (*Like, error)
 	GetLikesDislikesCount(postID int64) (*LikesDislikesCountsResult, error)
 }

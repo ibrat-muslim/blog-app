@@ -9,47 +9,49 @@ import (
 	"github.com/ibrat-muslim/blog-app/storage/repo"
 )
 
+// @Security ApiKeyAuth
 // @Router /likes [post]
-// @Summary Create like
-// @Description Create like
+// @Summary Create or update like
+// @Description Create or update like
 // @Tags like
 // @Accept json
 // @Produce json
-// @Param like body models.CreateLikeRequest true "Like"
-// @Success 201 {object} models.Like
+// @Param like body models.CreateOrUpdateLikeRequest true "Like"
+// @Success 200 {object} models.Like
+// @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-func (h *handlerV1) CreateLike(ctx *gin.Context) {
+func (h *handlerV1) CreateOrUpdateLike(ctx *gin.Context) {
 
-	var req models.CreateLikeRequest
+	var req models.CreateOrUpdateLikeRequest
 
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	resp, err := h.storage.Like().Create(&repo.Like{
+	payload, err := h.GetAuthPayload(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = h.storage.Like().CreateOrUpdate(&repo.Like{
 		PostID: req.PostID,
-		UserID: req.UserID,
+		UserID: payload.UserID,
 		Status: req.Status,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, models.Like{
-		ID:     resp.ID,
-		PostID: resp.PostID,
-		UserID: resp.UserID,
-		Status: resp.Status,
+	ctx.JSON(http.StatusOK, models.OKResponse{
+		Message: "Successfully finished",
 	})
 }
 
+// @Security ApiKeyAuth
 // @Router /likes/user-post [get]
 // @Summary Get like by user and post
 // @Description Get like by user and post
@@ -58,24 +60,25 @@ func (h *handlerV1) CreateLike(ctx *gin.Context) {
 // @Produce json
 // @Param post_id query int true "Post ID"
 // @Success 200 {object} models.Like
+// @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 func (h *handlerV1) GetLike(ctx *gin.Context) {
 
-	post_id, err := strconv.ParseInt(ctx.Param("post_id"), 10, 64)
+	postID, err := strconv.ParseInt(ctx.Query("post_id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	var user_id int64 = 10 //TODO
-
-	resp, err := h.storage.Like().Get(user_id, post_id)
+	payload, err := h.GetAuthPayload(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: err.Error(),
-		})
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	resp, err := h.storage.Like().Get(postID, payload.UserID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 

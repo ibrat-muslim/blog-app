@@ -63,8 +63,8 @@ func New(opt *RouterOptions) *gin.Engine {
 	apiV1.PUT("/comments/:id", handlerV1.AuthMiddleware, handlerV1.UpdateComment)
 	apiV1.DELETE("comments/:id", handlerV1.AuthMiddleware, handlerV1.DeleteComment)
 
-	apiV1.GET("/likes/user-post", handlerV1.GetLike)
-	apiV1.POST("/likes", handlerV1.CreateLike)
+	apiV1.GET("/likes/user-post", handlerV1.AuthMiddleware, handlerV1.GetLike)
+	apiV1.POST("/likes", handlerV1.AuthMiddleware, handlerV1.CreateOrUpdateLike)
 
 	apiV1.POST("/file-upload", handlerV1.AuthMiddleware, handlerV1.UploadFile)
 

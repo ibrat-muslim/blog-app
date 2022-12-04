@@ -85,17 +85,40 @@ func (cmr *commentRepo) GetAll(params *repo.GetCommentsParams) (*repo.GetComment
 		ORDER BY c.created_at DESC
 		` + limit
 
-	err := cmr.db.Select(&result.Comments, query)
-
+	rows, err := cmr.db.Query(query)
 	if err != nil {
 		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var comment repo.Comment
+
+		err := rows.Scan(
+			&comment.ID,
+			&comment.PostID,
+			&comment.UserID,
+			&comment.Description,
+			&comment.CreatedAt,
+			&comment.UpdatedAt,
+			&comment.User.FirstName,
+			&comment.User.LastName,
+			&comment.User.Email,
+			&comment.User.ProfileImageUrl,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		result.Comments = append(result.Comments, &comment)
 	}
 
 	queryCount := `
 		SELECT count(1) FROM comments c
 		INNER JOIN users u ON u.id = c.user_id ` + filter
 	
-	err = cmr.db.Get(&result.Count, queryCount)
+	err = cmr.db.QueryRow(queryCount).Scan(&result.Count)
 	if err != nil {
 		return nil, err
 	}
