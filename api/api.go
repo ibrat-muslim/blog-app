@@ -70,10 +70,10 @@ func New(opt *RouterOptions) *gin.Engine {
 	apiV1.POST("/file-upload", handlerV1.AuthMiddleware, handlerV1.UploadFile)
 
 	apiV1.POST("/auth/register", handlerV1.Register)
-	apiV1.POST("/auth/verify", handlerV1.Verfiy)
+	apiV1.POST("/auth/verify", handlerV1.Verify)
 	apiV1.POST("/auth/login", handlerV1.Login)
 	apiV1.POST("/auth/forgot-password", handlerV1.ForgotPassword)
-	apiV1.POST("/auth/verify-forgot-password", handlerV1.VerfiyForgotPassword)
+	apiV1.POST("/auth/verify-forgot-password", handlerV1.VerifyForgotPassword)
 	apiV1.POST("/auth/update-password", handlerV1.AuthMiddleware, handlerV1.UpdatePassword)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

@@ -19,11 +19,13 @@ RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/
 FROM alpine:3.16
 
 WORKDIR /app
+RUN mkdir media
 
 # copying main binary file to workdir
 COPY --from=builder /app/main .
 COPY --from=builder /app/migrate ./migrate
 COPY migrations ./migrations
+COPY templates ./templates
 
 EXPOSE 8000
 
@@ -34,4 +36,4 @@ CMD ["/app/main"]
 # docker network create blog-app-network
 # docker network connect blog-app-network postgresql
 # docker network connect blog-app-network redis-cli
-# docker run --env-file ./.env --name blogApp --network blog-app-network -p 8000:8000 -d blog-app:latest
+# docker run --env-file ./.env.docker --name blogApp --network blog-app-network -p 8000:8000 -d blog-app:latest
