@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	v1 "github.com/ibrat-muslim/blog-app/api/v1"
 	"github.com/ibrat-muslim/blog-app/config"
@@ -29,6 +30,12 @@ type RouterOptions struct {
 // @Security ApiKeyAuth
 func New(opt *RouterOptions) *gin.Engine {
 	router := gin.Default()
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AllowCredentials = true
+	corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "*")
+	router.Use(cors.New(corsConfig))
 
 	handlerV1 := v1.New(&v1.HandlerV1Options{
 		Cfg:      opt.Cfg,
