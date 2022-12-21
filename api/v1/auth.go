@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	RegisterCodeKey = "register_code_"
+	RegisterCodeKey   = "register_code_"
 	ForgotPasswordKey = "forgot_password_code_"
 )
 
@@ -90,7 +90,7 @@ func (h *handlerV1) sendVerificationCode(key, email string) error {
 		return err
 	}
 
-	err = h.inMemory.Set(key + email, code, time.Minute)
+	err = h.inMemory.Set(key+email, code, time.Minute)
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (h *handlerV1) sendVerificationCode(key, email string) error {
 // @Failure 403 {object} models.ErrorResponse
 // @Failure 404 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-func (h *handlerV1) Verfiy(ctx *gin.Context) {
+func (h *handlerV1) Verify(ctx *gin.Context) {
 
 	var req models.VerifyRequest
 
@@ -298,7 +298,7 @@ func (h *handlerV1) ForgotPassword(ctx *gin.Context) {
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 403 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-func (h *handlerV1) VerfiyForgotPassword(ctx *gin.Context) {
+func (h *handlerV1) VerifyForgotPassword(ctx *gin.Context) {
 
 	var req models.VerifyRequest
 
@@ -381,7 +381,7 @@ func (h *handlerV1) UpdatePassword(ctx *gin.Context) {
 	}
 
 	err = h.storage.User().UpdatePassword(&repo.UpdatePassword{
-		UserID: payload.UserID,
+		UserID:   payload.UserID,
 		Password: hashedPassword,
 	})
 	if err != nil {
